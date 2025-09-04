@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-server';
 import { executeUpdate, executeQuerySingle } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 
 export async function POST(
   request: NextRequest,
@@ -50,54 +48,24 @@ export async function POST(
       );
     }
 
-    const formData = await request.formData();
-    const audioFile = formData.get('audio') as File;
-    const notes = formData.get('notes') as string;
+    const { notes, audio_url } = await request.json();
 
-    if (!audioFile) {
+    if (!notes && !audio_url) {
       return NextResponse.json(
-        { message: 'يجب رفع ملف صوتي' },
+        { message: 'يجب إضافة ملاحظات أو رابط صوتي' },
         { status: 400 }
       );
     }
 
-    // Validate file type
-    if (!audioFile.type.startsWith('audio/')) {
-      return NextResponse.json(
-        { message: 'يجب أن يكون الملف ملف صوتي' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size (10MB max)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (audioFile.size > maxSize) {
-      return NextResponse.json(
-        { message: 'حجم الملف يجب أن يكون أقل من 10 ميجابايت' },
-        { status: 400 }
-      );
-    }
-
-    // Create uploads directory if it doesn't exist
-    const uploadDir = join(process.cwd(), 'uploads', 'assignments');
-    await mkdir(uploadDir, { recursive: true });
-
-    // Generate unique filename
-    const fileExtension = audioFile.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExtension}`;
-    const filePath = join(uploadDir, fileName);
-
-    // Convert File to Buffer and save
-    const bytes = await audioFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    // Generate unique filename for reference
+    const fileName = `submission_${uuidv4()}.txt`;
 
     // Save submission to database
     const submissionId = uuidv4();
     await executeUpdate(
       `INSERT INTO submissions (id, assignment_id, student_id, content, file_url, submitted_at)
        VALUES (?, ?, ?, ?, ?, NOW())`,
-      [submissionId, assignmentId, assignment.student_id, notes || '', fileName]
+      [submissionId, assignmentId, assignment.student_id, notes || '', audio_url || fileName]
     );
 
     // Add student to assignment_targets if not already there
