@@ -6,6 +6,11 @@ export const dynamic = 'force-dynamic'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Skip middleware for API routes - let them handle their own auth
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   // Public paths that don't require authentication
   const publicPaths = [
     '/',
@@ -15,11 +20,6 @@ export async function middleware(request: NextRequest) {
     '/auth/awaiting-approval',
     '/about',
     '/quran',
-    '/api/auth/login',
-    '/api/auth/register',
-    '/api/auth/apply-teacher',
-    '/api/quran/daily-ayah',
-    '/api/toasts/active',
   ]
 
   // Check if the path is public
@@ -53,7 +53,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - api/auth (auth API routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/auth).*)',
   ],
 }
