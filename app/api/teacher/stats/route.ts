@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     // Get total groups
     const totalGroupsQuery = `
       SELECT COUNT(DISTINCT g.id) as total_groups
-      FROM groups g
+      FROM \`groups\` g
       WHERE g.teacher_id = ?
     `
     const totalGroupsResult = await executeQuery(totalGroupsQuery, [teacherRecordId])

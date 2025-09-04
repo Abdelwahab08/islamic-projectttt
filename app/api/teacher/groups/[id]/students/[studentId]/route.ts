@@ -27,7 +27,7 @@ export async function DELETE(
 
     // Check if group belongs to this teacher
     const groupCheck = await executeQuery(
-      'SELECT id FROM groups WHERE id = ? AND teacher_id = ?',
+      'SELECT id FROM `groups` WHERE id = ? AND teacher_id = ?',
       [params.id, teacherId]
     )
 

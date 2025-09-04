@@ -47,7 +47,7 @@ export async function GET() {
       LEFT JOIN teachers t ON m.teacher_id = t.id
       LEFT JOIN users u ON t.user_id = u.id
       LEFT JOIN stages st ON m.level_stage_id = st.id
-      LEFT JOIN groups g ON m.group_id = g.id
+      LEFT JOIN \`groups\` g ON m.group_id = g.id
       LEFT JOIN group_members gm ON m.group_id = gm.group_id
       WHERE (m.level_stage_id = ? OR gm.student_id = ?)
       ORDER BY m.scheduled_at ASC

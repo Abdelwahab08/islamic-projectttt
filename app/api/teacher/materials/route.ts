@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       FROM materials m
       JOIN teachers t ON m.teacher_id = t.id
       LEFT JOIN stages st ON m.stage_id = st.id
-      LEFT JOIN groups g ON m.group_id = g.id
+      LEFT JOIN \`groups\` g ON m.group_id = g.id
       WHERE t.user_id = ?
       ORDER BY m.created_at DESC
     `

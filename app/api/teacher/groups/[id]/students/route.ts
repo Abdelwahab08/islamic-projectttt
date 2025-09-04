@@ -28,7 +28,7 @@ export async function GET(
 
     // Check if group belongs to this teacher
     const groupCheck = await executeQuery(
-      'SELECT id FROM groups WHERE id = ? AND teacher_id = ?',
+      'SELECT id FROM `groups` WHERE id = ? AND teacher_id = ?',
       [params.id, teacherId]
     )
 
@@ -93,7 +93,7 @@ export async function POST(
 
     // Check if group belongs to this teacher
     const groupCheck = await executeQuery(
-      'SELECT id, max_students FROM groups WHERE id = ? AND teacher_id = ?',
+      'SELECT id, max_students FROM `groups` WHERE id = ? AND teacher_id = ?',
       [params.id, teacherId]
     )
 
