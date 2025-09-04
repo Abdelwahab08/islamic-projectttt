@@ -8,7 +8,7 @@ export interface User {
   role: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'ACADEMIC_MOD';
   email: string;
   is_approved: boolean;
-  onboarding_status: 'PENDING_REVIEW' | 'ACTIVE' | 'REJECTED';
+  onboarding_status: 'PENDING' | 'ACTIVE' | 'REJECTED';
   teacher_verified?: boolean;
   current_stage_id?: string;
   current_page?: number;
@@ -55,7 +55,16 @@ export async function getUserFromToken(token: string): Promise<User | null> {
     if (!payload) return null;
 
     const user = await executeQuerySingle<User>(
-      'SELECT * FROM v_user_access WHERE id = ?',
+      `SELECT 
+        u.id,
+        u.email,
+        u.role,
+        u.is_approved,
+        u.onboarding_status,
+        v.redirect_path
+      FROM users u
+      LEFT JOIN v_user_access v ON u.id = v.id
+      WHERE u.id = ?`,
       [payload.userId]
     );
 
