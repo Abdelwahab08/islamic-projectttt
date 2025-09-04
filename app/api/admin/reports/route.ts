@@ -54,13 +54,18 @@ export async function GET(request: NextRequest) {
     // Get monthly statistics
     const monthlyStats = await executeQuery(`
       SELECT 
-        DATE_FORMAT(created_at, '%Y-%m') as month,
-        COUNT(*) as newUsers,
-        (SELECT COUNT(*) FROM certificates WHERE DATE_FORMAT(issued_at, '%Y-%m') = DATE_FORMAT(users.created_at, '%Y-%m')) as newCertificates,
-        (SELECT COUNT(*) FROM assignments WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(users.created_at, '%Y-%m')) as newAssignments
-      FROM users
-      WHERE created_at >= ?
-      GROUP BY DATE_FORMAT(created_at, '%Y-%m'), month
+        month,
+        newUsers,
+        (SELECT COUNT(*) FROM certificates WHERE DATE_FORMAT(issued_at, '%Y-%m') = month) as newCertificates,
+        (SELECT COUNT(*) FROM assignments WHERE DATE_FORMAT(created_at, '%Y-%m') = month) as newAssignments
+      FROM (
+        SELECT 
+          DATE_FORMAT(created_at, '%Y-%m') as month,
+          COUNT(*) as newUsers
+        FROM users
+        WHERE created_at >= ?
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+      ) as monthly_data
       ORDER BY month DESC
       LIMIT 6
     `, [dateFrom])
