@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
-import puppeteer from 'puppeteer'
 
 export const dynamic = 'force-dynamic'
 
@@ -182,40 +181,13 @@ export async function GET(request: NextRequest) {
     // Generate HTML report
     const htmlContent = generateHTMLReport(type, reportData, reportTitle, range)
 
-    // Launch Puppeteer and generate PDF
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    // Return HTML content instead of PDF (Vercel serverless doesn't support Puppeteer)
+    return new NextResponse(htmlContent, {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Disposition': `attachment; filename="report-${type}-${range}days.html"`
+      }
     })
-    
-    try {
-      const page = await browser.newPage()
-      
-      // Set content and wait for fonts to load
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
-      
-      // Generate PDF
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20px',
-          right: '20px',
-          bottom: '20px',
-          left: '20px'
-        }
-      })
-      
-      // Return PDF content
-      return new NextResponse(Buffer.from(pdfBuffer), {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="report-${type}-${range}days.pdf"`
-        }
-      })
-    } finally {
-      await browser.close()
-    }
 
   } catch (error) {
     console.error('Error generating report:', error)
