@@ -47,7 +47,7 @@ export async function PUT(
 
     // Update the group
     await executeUpdate(`
-      UPDATE `groups` 
+      UPDATE \`groups\` 
       SET name = ?, description = ?, max_students = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `, [name, description || '', max_students, params.id])
