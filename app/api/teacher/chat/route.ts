@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery, executeUpdate } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
 import { createNotificationFromTemplate, notificationTemplates } from '@/lib/notifications'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })

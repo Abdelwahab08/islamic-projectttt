@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
 
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -18,6 +18,9 @@ export async function GET(request: NextRequest) {
     }
 
     const teacherId = teacherRecord[0].id
+    
+    console.log('🔍 Teacher Students API - Current user:', user ? { id: user.id, role: user.role, email: user.email } : 'No user')
+    console.log('🔍 Teacher Students API - Teacher ID:', teacherId)
 
     // Get students assigned to this teacher
     const students = await executeQuery(`
@@ -45,6 +48,9 @@ export async function GET(request: NextRequest) {
       WHERE ts.teacher_id = ?
       ORDER BY u.first_name, u.last_name ASC
     `, [teacherId])
+    
+    console.log('🔍 Teacher Students API - Found students:', students.length)
+    console.log('🔍 Teacher Students API - Sample students:', students.slice(0, 3))
 
     return NextResponse.json({ students })
 
