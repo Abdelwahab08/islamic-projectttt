@@ -17,6 +17,7 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
   const [volume, setVolume] = useState(1)
   const [audioError, setAudioError] = useState(false)
   const [processedAudioUrl, setProcessedAudioUrl] = useState(audioUrl)
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
   
   const audioRef = useRef<HTMLAudioElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
@@ -25,24 +26,54 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
   useEffect(() => {
     if (audioUrl.startsWith('data:')) {
       try {
-        // Convert data URL to blob
-        const response = fetch(audioUrl)
-        response.then(res => res.blob()).then(blob => {
-          const blobUrl = URL.createObjectURL(blob)
-          console.log('🔍 AudioPlayer: Created blob URL:', blobUrl)
-          setProcessedAudioUrl(blobUrl)
-        }).catch(error => {
-          console.error('🔍 AudioPlayer: Error creating blob URL:', error)
-          setProcessedAudioUrl(audioUrl) // Fallback to original
-        })
+        console.log('🔍 AudioPlayer: Processing base64 data URL...')
+        
+        // Extract the base64 data and mime type
+        const [header, base64Data] = audioUrl.split(',')
+        const mimeType = header.match(/data:([^;]+)/)?.[1] || 'audio/wav'
+        
+        console.log('🔍 AudioPlayer: MIME type:', mimeType)
+        console.log('🔍 AudioPlayer: Base64 data length:', base64Data.length)
+        
+        // Convert base64 to binary
+        const binaryString = atob(base64Data)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i)
+        }
+        
+        // Create blob and URL
+        const blob = new Blob([bytes], { type: mimeType })
+        const newBlobUrl = URL.createObjectURL(blob)
+        
+        console.log('🔍 AudioPlayer: Created blob URL:', newBlobUrl)
+        console.log('🔍 AudioPlayer: Blob size:', blob.size, 'bytes')
+        
+        // Clean up previous blob URL
+        if (blobUrl) {
+          URL.revokeObjectURL(blobUrl)
+        }
+        
+        setBlobUrl(newBlobUrl)
+        setProcessedAudioUrl(newBlobUrl)
       } catch (error) {
-        console.error('🔍 AudioPlayer: Error processing data URL:', error)
+        console.error('🔍 AudioPlayer: Error processing base64 data:', error)
         setProcessedAudioUrl(audioUrl) // Fallback to original
       }
     } else {
+      console.log('🔍 AudioPlayer: Using non-data URL:', audioUrl)
       setProcessedAudioUrl(audioUrl)
     }
   }, [audioUrl])
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl)
+      }
+    }
+  }, [blobUrl])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -164,12 +195,17 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
   }
 
   const handleDownload = () => {
-    const link = document.createElement('a')
-    link.href = audioUrl
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      const link = document.createElement('a')
+      link.href = processedAudioUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      console.log('🔍 AudioPlayer: Download initiated for:', filename)
+    } catch (error) {
+      console.error('🔍 AudioPlayer: Download error:', error)
+    }
   }
 
   // Show error state if audio failed to load
@@ -252,11 +288,25 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
                 console.log('🔍 AudioPlayer: Audio network state:', audio.networkState)
                 console.log('🔍 AudioPlayer: Audio error:', audio.error)
                 console.log('🔍 AudioPlayer: Audio src:', audio.src)
+                // Force reload
+                audio.load()
               }
             }}
             className="flex items-center space-x-1 space-x-reverse text-sm text-blue-600 hover:text-blue-800 transition-colors"
           >
             <span>اختبار</span>
+          </button>
+          <button
+            onClick={() => {
+              const audio = audioRef.current
+              if (audio) {
+                audio.load()
+                console.log('🔍 AudioPlayer: Forced audio reload')
+              }
+            }}
+            className="flex items-center space-x-1 space-x-reverse text-sm text-green-600 hover:text-green-800 transition-colors"
+          >
+            <span>إعادة تحميل</span>
           </button>
           <button
             onClick={handleDownload}
