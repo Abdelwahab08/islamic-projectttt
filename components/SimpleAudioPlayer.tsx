@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Play, Pause, Volume2, Download } from 'lucide-react'
+import LargeFileAudioPlayer from './LargeFileAudioPlayer'
 
 interface SimpleAudioPlayerProps {
   audioUrl: string
@@ -21,7 +22,7 @@ export default function SimpleAudioPlayer({ audioUrl, filename, className = '' }
   // Check if this is a large file reference that can't be played
   useEffect(() => {
     if (audioUrl.startsWith('audio_file_')) {
-      setError('ملف صوتي كبير جداً - لا يمكن تشغيله في Vercel')
+      setError('large_file_reference')
       setIsLoading(false)
       return
     }
@@ -138,6 +139,17 @@ export default function SimpleAudioPlayer({ audioUrl, filename, className = '' }
 
   // Show error state
   if (error) {
+    // Special handling for large file references
+    if (error === 'large_file_reference') {
+      return (
+        <LargeFileAudioPlayer 
+          audioUrl={audioUrl}
+          filename={filename}
+          className={className}
+        />
+      )
+    }
+    
     return (
       <div className={`bg-orange-50 border border-orange-200 rounded-lg p-4 ${className}`}>
         <div className="flex items-center gap-2 text-orange-600 mb-2">

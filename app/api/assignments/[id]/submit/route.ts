@@ -81,7 +81,7 @@ export async function POST(
             // Check if the base64 data is too large for database
             if (base64Audio.length > 50000) { // 50KB limit for better compatibility
               console.log('🔍 DEBUG: Base64 data too large for database, storing reference only');
-              audio_url = `audio_file_${uuidv4()}_${audioFile.name}`;
+              audio_url = `audio_file_${uuidv4()}_recording.webm`;
             } else {
               audio_url = `data:${audioFile.type};base64,${base64Audio}`;
               console.log('🔍 DEBUG: Created base64 audio URL, length:', audio_url.length);
