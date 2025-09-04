@@ -67,7 +67,7 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
       console.log('🔍 AudioPlayer: Audio ended')
       setIsPlaying(false)
     }
-    const handleError = (e) => {
+    const handleError = (e: Event) => {
       console.error('🔍 AudioPlayer: Audio error:', audio.error, e)
       setAudioError(true)
     }
