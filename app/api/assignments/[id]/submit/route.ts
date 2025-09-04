@@ -122,11 +122,26 @@ export async function POST(
     // For large base64 audio data, we'll store it in audio_url and keep file_url as a reference
     const fileUrlForDb = audioBlob ? `audio_${submissionId}` : fileName;
     
-    await executeUpdate(
-      `INSERT INTO submissions (id, assignment_id, student_id, content, file_url, audio_url, submitted_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-      [submissionId, assignmentId, assignment.student_id, notes || '', fileUrlForDb, audio_url || '']
-    );
+    console.log('🔍 DEBUG: About to insert submission:', {
+      submissionId,
+      assignmentId,
+      studentId: assignment.student_id,
+      notes: notes || '',
+      fileUrl: fileUrlForDb,
+      audioUrl: audio_url || ''
+    });
+    
+    try {
+      await executeUpdate(
+        `INSERT INTO submissions (id, assignment_id, student_id, content, file_url, audio_url, submitted_at)
+         VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+        [submissionId, assignmentId, assignment.student_id, notes || '', fileUrlForDb, audio_url || '']
+      );
+      console.log('🔍 DEBUG: Submission inserted successfully');
+    } catch (dbError) {
+      console.error('🔍 DEBUG: Database insertion error:', dbError);
+      throw dbError;
+    }
 
     // Add student to assignment_targets if not already there
     try {

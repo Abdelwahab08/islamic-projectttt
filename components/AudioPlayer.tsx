@@ -76,6 +76,15 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
     }
   }, [audioUrl])
 
+  // Force audio element to reload when URL changes
+  useEffect(() => {
+    const audio = audioRef.current
+    if (audio && processedAudioUrl) {
+      console.log('🔍 AudioPlayer: Reloading audio element with new URL')
+      audio.load()
+    }
+  }, [processedAudioUrl])
+
   // Cleanup blob URL on unmount
   useEffect(() => {
     return () => {
@@ -329,6 +338,30 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
             className="flex items-center space-x-1 space-x-reverse text-sm text-green-600 hover:text-green-800 transition-colors"
           >
             <span>إعادة تحميل</span>
+          </button>
+          <button
+            onClick={() => {
+              const audio = audioRef.current
+              if (audio) {
+                console.log('🔍 AudioPlayer: Testing audio element...')
+                console.log('🔍 AudioPlayer: Audio src:', audio.src)
+                console.log('🔍 AudioPlayer: Audio readyState:', audio.readyState)
+                console.log('🔍 AudioPlayer: Audio networkState:', audio.networkState)
+                console.log('🔍 AudioPlayer: Audio error:', audio.error)
+                console.log('🔍 AudioPlayer: Audio duration:', audio.duration)
+                console.log('🔍 AudioPlayer: Audio currentTime:', audio.currentTime)
+                
+                // Try to play
+                audio.play().then(() => {
+                  console.log('🔍 AudioPlayer: Play successful')
+                }).catch(error => {
+                  console.error('🔍 AudioPlayer: Play failed:', error)
+                })
+              }
+            }}
+            className="flex items-center space-x-1 space-x-reverse text-sm text-purple-600 hover:text-purple-800 transition-colors"
+          >
+            <span>اختبار تشغيل</span>
           </button>
           <button
             onClick={handleDownload}
