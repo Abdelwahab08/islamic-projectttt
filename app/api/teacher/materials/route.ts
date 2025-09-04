@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-server'
-import { executeQuery } from '@/lib/db'
+import { executeQuery, executeUpdate } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
 
 export async function GET(request: NextRequest) {
   try {
@@ -86,35 +84,15 @@ export async function POST(request: NextRequest) {
     }
     const teacherRecordId = teachers[0].id
 
-    const formData = await request.formData()
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const kind = formData.get('kind') as string
-    const file = formData.get('file') as File
-    const group_id = formData.get('group_id') as string
-    const stage_id = formData.get('stage_id') as string
+    const { title, description, kind, file_url, group_id, stage_id } = await request.json()
 
-    if (!title || !kind || !file) {
-      return NextResponse.json({ error: 'جميع الحقول مطلوبة' }, { status: 400 })
+    if (!title || !kind) {
+      return NextResponse.json({ error: 'العنوان والنوع مطلوبان' }, { status: 400 })
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'uploads', 'materials')
-    await mkdir(uploadsDir, { recursive: true })
-
-    // Generate unique filename
-    const fileExtension = path.extname(file.name)
-    const fileName = `${uuidv4()}${fileExtension}`
-    const filePath = path.join(uploadsDir, fileName)
-
-    // Save file
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filePath, buffer)
-
-    // Save to database
+    // Save to database (without file upload for Vercel compatibility)
     const materialId = uuidv4()
-    const result = await executeQuery(`
+    await executeUpdate(`
       INSERT INTO materials (id, title, teacher_id, stage_id, group_id, file_url, kind, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
     `, [
@@ -123,7 +101,7 @@ export async function POST(request: NextRequest) {
       teacherRecordId,
       stage_id || null,
       group_id || null,
-      `/uploads/materials/${fileName}`,
+      file_url || `https://example.com/materials/${materialId}`, // Placeholder URL
       kind
     ])
 
@@ -132,7 +110,8 @@ export async function POST(request: NextRequest) {
       material: {
         id: materialId,
         title,
-        file_url: `/uploads/materials/${fileName}`
+        file_url: file_url || `https://example.com/materials/${materialId}`,
+        description: description || ''
       }
     })
 
