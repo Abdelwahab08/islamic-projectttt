@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           COUNT(gm.student_id) as current_students,
           u.email as teacher_name,
           g.created_at
-        FROM groups g
+        FROM \`groups\` g
         JOIN teachers t ON g.teacher_id = t.id
         JOIN users u ON t.user_id = u.id
         LEFT JOIN stages st ON g.level_stage_id = st.id
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
           g.level_stage_id,
           st.name_ar as stage_name,
           COUNT(gm.student_id) as current_students
-        FROM groups g
+        FROM \`groups\` g
         JOIN teachers t ON g.teacher_id = t.id
         LEFT JOIN stages st ON g.level_stage_id = st.id
         LEFT JOIN group_students gm ON g.id = gm.group_id
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     // Check for duplicate group name for this teacher
     const existingGroup = await executeQuery(
-      'SELECT id FROM groups WHERE name = ? AND teacher_id = ?',
+      'SELECT id FROM `groups` WHERE name = ? AND teacher_id = ?',
       [name, teacherId]
     )
 
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
     try {
       // Try new schema first
       await executeUpdate(`
-        INSERT INTO groups (id, name, description, max_students, teacher_id, level_stage_id, created_at)
+        INSERT INTO \`groups\` (id, name, description, max_students, teacher_id, level_stage_id, created_at)
         VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `, [groupId, name, description || '', max_students, teacherId, level_stage_id])
 
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       
       // Fallback to old schema
       await executeUpdate(`
-        INSERT INTO groups (id, name, teacher_id, level_stage_id)
+        INSERT INTO \`groups\` (id, name, teacher_id, level_stage_id)
         VALUES (?, ?, ?, ?)
       `, [groupId, name, teacherId, level_stage_id])
     }

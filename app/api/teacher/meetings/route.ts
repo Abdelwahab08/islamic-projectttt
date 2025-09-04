@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         st.name_ar as stage_name
       FROM meetings m
       JOIN teachers t ON m.teacher_id = t.id
-      LEFT JOIN groups g ON m.group_id = g.id
+      LEFT JOIN \`groups\` g ON m.group_id = g.id
       LEFT JOIN stages st ON m.level_stage_id = st.id
       WHERE t.user_id = ?
       ORDER BY m.scheduled_at DESC

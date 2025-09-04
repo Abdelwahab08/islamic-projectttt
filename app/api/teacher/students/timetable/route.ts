@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
         CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as name,
         st.name_ar as current_stage_name,
         s.current_page,
-        s.current_stage_id
+        s.current_stage_id,
+        u.first_name,
+        u.last_name
       FROM students s
       JOIN users u ON s.user_id = u.id
       LEFT JOIN stages st ON s.current_stage_id = st.id
