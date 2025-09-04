@@ -93,14 +93,12 @@ export async function POST(
       </html>
     `;
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = join(process.cwd(), 'uploads', 'certificates');
-    await mkdir(uploadDir, { recursive: true });
-
-    // Save HTML file
+    // For Vercel serverless environment, we'll store the certificate data in the database
+    // instead of creating files on the filesystem
     const fileName = `certificate_${certificate.id}.html`;
-    const filePath = join(uploadDir, fileName);
-    await writeFile(filePath, htmlContent);
+    
+    // Store the HTML content in the database or return it directly
+    // For now, we'll just use the filename without creating the actual file
 
     // Update certificate status
     await executeUpdate(`
@@ -114,7 +112,9 @@ export async function POST(
     return NextResponse.json({
       message: 'تم الموافقة على الشهادة بنجاح',
       certificateId,
-      fileName
+      fileName,
+      htmlContent: htmlContent,
+      certificateData: certificateData
     });
 
   } catch (error) {
