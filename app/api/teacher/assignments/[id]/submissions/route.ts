@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-server'
-import { executeQuery } from '@/lib/db'
+import { executeQuery, executeUpdate } from '@/lib/db'
 
 // GET - Get all submissions for an assignment
 export async function GET(
@@ -78,7 +78,7 @@ export async function GET(
       submitted_at: submission.submitted_at,
       grade: submission.grade,
       feedback: submission.feedback || '',
-      audio_url: submission.audio_url ? `/api/uploads/assignments/${submission.audio_url}` : null,
+      audio_url: submission.audio_url || null,
       page_number: submission.page_number || null,
       evaluation_grade: submission.evaluation_grade || null,
       current_page: submission.current_page || 1,
@@ -144,7 +144,7 @@ export async function PUT(
       SET grade = ?, feedback = ?, page_number = ?
       WHERE id = ? AND assignment_id = ?
     `
-    await executeQuery(updateQuery, [
+    await executeUpdate(updateQuery, [
       body.grade,
       body.feedback || '',
       body.page_number,
@@ -210,18 +210,18 @@ export async function PUT(
               SET current_page = ?, stage_id = ?, updated_at = NOW()
               WHERE id = ?
             `
-            await executeQuery(updateStudentQuery, [nextPage, nextStage[0].id, body.student_id])
+            await executeUpdate(updateStudentQuery, [nextPage, nextStage[0].id, body.student_id])
           } else {
             // No next stage, just update page
-            await executeQuery(updateStudentQuery, [nextPage, body.student_id])
+            await executeUpdate(updateStudentQuery, [nextPage, body.student_id])
           }
         } else {
           // Fallback: just update page
-          await executeQuery(updateStudentQuery, [nextPage, body.student_id])
+          await executeUpdate(updateStudentQuery, [nextPage, body.student_id])
         }
       } else {
         // Just update page
-        await executeQuery(updateStudentQuery, [nextPage, body.student_id])
+        await executeUpdate(updateStudentQuery, [nextPage, body.student_id])
       }
     }
 
@@ -239,7 +239,7 @@ export async function PUT(
           INSERT INTO student_progress_log (id, student_id, page_number, evaluation_grade, teacher_id, assignment_id, logged_at)
           VALUES (UUID(), ?, ?, ?, ?, ?, NOW())
         `
-        await executeQuery(logQuery, [
+        await executeUpdate(logQuery, [
           body.student_id,
           body.page_number,
           body.grade,
@@ -315,7 +315,7 @@ export async function POST(
         SET current_page = ?, updated_at = NOW()
         WHERE id = ?
       `
-      await executeQuery(updateStudentQuery, [nextPage, body.student_id])
+      await executeUpdate(updateStudentQuery, [nextPage, body.student_id])
     }
 
     // Log the evaluation
@@ -332,7 +332,7 @@ export async function POST(
           INSERT INTO student_progress_log (id, student_id, page_number, evaluation_grade, teacher_id, assignment_id, logged_at)
           VALUES (UUID(), ?, ?, ?, ?, ?, NOW())
         `
-        await executeQuery(logQuery, [
+        await executeUpdate(logQuery, [
           body.student_id,
           body.current_page,
           body.evaluation_grade,

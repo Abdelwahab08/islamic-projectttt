@@ -50,20 +50,32 @@ export async function POST(
 
     let notes = '';
     let audio_url = '';
+    let audioBlob: Blob | null = null;
 
     try {
-      // Try to parse as JSON first
+      // Try to parse as FormData first (for file uploads)
       const contentType = request.headers.get('content-type');
       
-      if (contentType && contentType.includes('application/json')) {
+      if (contentType && contentType.includes('multipart/form-data')) {
+        const formData = await request.formData();
+        notes = (formData.get('notes') as string) || '';
+        
+        // Handle audio file upload
+        const audioFile = formData.get('audio') as File;
+        if (audioFile && audioFile.size > 0) {
+          audioBlob = audioFile;
+          // For Vercel, we'll store the audio as base64 in the database
+          const arrayBuffer = await audioFile.arrayBuffer();
+          const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+          audio_url = `data:${audioFile.type};base64,${base64Audio}`;
+        } else {
+          audio_url = (formData.get('audio_url') as string) || '';
+        }
+      } else {
+        // Try to parse as JSON
         const jsonData = await request.json();
         notes = jsonData.notes || '';
         audio_url = jsonData.audio_url || '';
-      } else {
-        // Try to parse as FormData
-        const formData = await request.formData();
-        notes = (formData.get('notes') as string) || '';
-        audio_url = (formData.get('audio_url') as string) || '';
       }
     } catch (error) {
       console.error('Error parsing request data:', error);

@@ -747,8 +747,8 @@ export default function TeacherAssignmentsPage() {
                                 <span>تسجيل صوتي:</span>
                               </div>
                               <AudioPlayer 
-                                audioUrl={`/api/uploads/assignments/${submission.audio_url}`}
-                                filename={submission.audio_url}
+                                audioUrl={submission.audio_url}
+                                filename={`submission_${submission.id}.wav`}
                                 className="w-full"
                               />
                             </div>
