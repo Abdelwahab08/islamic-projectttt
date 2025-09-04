@@ -5,6 +5,8 @@ import { generateCertificatePDF, formatDate } from '@/lib/certificate-generator'
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }

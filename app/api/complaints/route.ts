@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
 import { executeQuery, executeUpdate } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth-server'
 import { v4 as uuidv4 } from 'uuid'

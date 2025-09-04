@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
 import { executeQuery } from '@/lib/db'
 import { getWeekDays } from '@/lib/dates'
 import { getCurrentUser } from '@/lib/auth-server'

@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
 import { getCurrentUser } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 
