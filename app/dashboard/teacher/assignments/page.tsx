@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/app/components/DashboardLayout'
 import AudioPlayer from '@/components/AudioPlayer'
+import SimpleAudioPlayer from '@/components/SimpleAudioPlayer'
 import { BookOpen, Calendar, Users, FileText, CheckCircle, Clock, Plus, Edit, Eye, Trash2, X, Star, MessageSquare, Play, Volume2, ArrowRight } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -763,11 +764,24 @@ export default function TeacherAssignmentsPage() {
                                   </div>
                                 )}
                               </div>
-                              <AudioPlayer 
+                              {/* Try Simple Audio Player first */}
+                              <SimpleAudioPlayer 
                                 audioUrl={submission.audio_url}
                                 filename={`submission_${submission.id}.wav`}
                                 className="w-full"
                               />
+                              
+                              {/* Fallback to original AudioPlayer for debugging */}
+                              <details className="mt-2">
+                                <summary className="text-xs text-gray-500 cursor-pointer">Advanced Audio Player (Debug)</summary>
+                                <div className="mt-2">
+                                  <AudioPlayer 
+                                    audioUrl={submission.audio_url}
+                                    filename={`submission_${submission.id}.wav`}
+                                    className="w-full"
+                                  />
+                                </div>
+                              </details>
                             </div>
                           )}
                           

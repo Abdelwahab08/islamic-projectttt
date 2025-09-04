@@ -70,7 +70,7 @@ export async function POST(
           
           // For Vercel serverless, we need to handle audio files differently
           // Check file size first (Vercel has 4.5MB payload limit)
-          if (audioFile.size > 4 * 1024 * 1024) { // 4MB limit for safety
+          if (audioFile.size > 2 * 1024 * 1024) { // 2MB limit for better compatibility
             console.log('🔍 DEBUG: Audio file too large for Vercel, storing reference only');
             audio_url = `audio_file_${uuidv4()}_${audioFile.name}`;
           } else {
@@ -79,7 +79,7 @@ export async function POST(
             const base64Audio = Buffer.from(arrayBuffer).toString('base64');
             
             // Check if the base64 data is too large for database
-            if (base64Audio.length > 100000) { // 100KB limit for database
+            if (base64Audio.length > 50000) { // 50KB limit for better compatibility
               console.log('🔍 DEBUG: Base64 data too large for database, storing reference only');
               audio_url = `audio_file_${uuidv4()}_${audioFile.name}`;
             } else {
