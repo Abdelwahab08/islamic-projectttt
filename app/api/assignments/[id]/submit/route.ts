@@ -48,7 +48,30 @@ export async function POST(
       );
     }
 
-    const { notes, audio_url } = await request.json();
+    let notes = '';
+    let audio_url = '';
+
+    try {
+      // Try to parse as JSON first
+      const contentType = request.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        const jsonData = await request.json();
+        notes = jsonData.notes || '';
+        audio_url = jsonData.audio_url || '';
+      } else {
+        // Try to parse as FormData
+        const formData = await request.formData();
+        notes = (formData.get('notes') as string) || '';
+        audio_url = (formData.get('audio_url') as string) || '';
+      }
+    } catch (error) {
+      console.error('Error parsing request data:', error);
+      return NextResponse.json(
+        { message: 'خطأ في تحليل البيانات المرسلة' },
+        { status: 400 }
+      );
+    }
 
     if (!notes && !audio_url) {
       return NextResponse.json(
