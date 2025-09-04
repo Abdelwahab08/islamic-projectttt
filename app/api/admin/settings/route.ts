@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeUpdate } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { message: 'غير مصرح لك بتعديل إعدادات النظام' },
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { message: 'غير مصرح لك بالوصول إلى إعدادات النظام' },

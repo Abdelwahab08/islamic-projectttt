@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { message: 'غير مصرح لك بالوصول إلى هذه البيانات' },
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserFromRequest(request);
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { message: 'غير مصرح لك بتعديل المستخدمين' },
@@ -160,7 +160,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserFromRequest(request);
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { message: 'غير مصرح لك بحذف المستخدمين' },

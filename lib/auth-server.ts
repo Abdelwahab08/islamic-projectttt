@@ -90,6 +90,28 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 }
 
+// Get current user from request headers (for API routes)
+export async function getCurrentUserFromRequest(request: Request): Promise<User | null> {
+  try {
+    const cookieHeader = request.headers.get('cookie');
+    if (!cookieHeader) return null;
+    
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    const token = cookies['auth-token'];
+    if (!token) return null;
+    
+    return await getUserFromToken(token);
+  } catch (error) {
+    console.error('Error getting current user from request:', error);
+    return null;
+  }
+}
+
 // Set auth cookie (server-side)
 export async function setAuthCookie(userId: string, role: string, email: string) {
   const token = generateToken({ userId, role, email });
