@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
         last_name: null,
         phone: null
       },
-      assignedTeacher: user.assigned_teacher ? JSON.parse(user.assigned_teacher) : null
+      assignedTeacher: user.assigned_teacher ? (typeof user.assigned_teacher === 'string' ? JSON.parse(user.assigned_teacher) : user.assigned_teacher) : null
     }))
 
     return NextResponse.json(transformedUsers)

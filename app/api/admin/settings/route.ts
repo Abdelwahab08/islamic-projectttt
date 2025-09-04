@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     await executeUpdate(`
       UPDATE admin_toasts 
       SET title = ?, body = ?
-      WHERE id = (SELECT id FROM admin_toasts LIMIT 1)
+      WHERE id = (SELECT id FROM (SELECT id FROM admin_toasts LIMIT 1) as temp)
     `, [settings.siteName, settings.siteDescription])
 
     return NextResponse.json({

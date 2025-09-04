@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         (SELECT COUNT(*) FROM assignments WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(users.created_at, '%Y-%m')) as newAssignments
       FROM users
       WHERE created_at >= ?
-      GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+      GROUP BY DATE_FORMAT(created_at, '%Y-%m'), month
       ORDER BY month DESC
       LIMIT 6
     `, [dateFrom])

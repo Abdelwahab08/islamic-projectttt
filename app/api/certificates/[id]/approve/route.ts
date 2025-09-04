@@ -62,7 +62,36 @@ export async function POST(
       quranPortion: `مرحلة ${certificate.stage_name}`
     };
 
-    const htmlBuffer = await generateCertificatePDF(certificateData);
+    // Generate HTML certificate (skip PDF generation for now due to Puppeteer issues)
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>شهادة إنجاز</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+          .certificate { border: 3px solid #2c5530; padding: 30px; margin: 20px; }
+          .title { font-size: 24px; color: #2c5530; margin-bottom: 20px; }
+          .content { font-size: 18px; margin: 15px 0; }
+          .signature { margin-top: 40px; }
+        </style>
+      </head>
+      <body>
+        <div class="certificate">
+          <div class="title">شهادة إنجاز</div>
+          <div class="content">هذه شهادة تثبت إنجاز الطالب: ${certificateData.studentName}</div>
+          <div class="content">في مرحلة: ${certificateData.stageName}</div>
+          <div class="content">بتاريخ: ${certificateData.completionDate}</div>
+          <div class="signature">
+            <div>المدرس: ${certificateData.teacherName}</div>
+            <div>رقم الشهادة: ${certificateData.certificateId}</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
 
     // Create uploads directory if it doesn't exist
     const uploadDir = join(process.cwd(), 'uploads', 'certificates');
@@ -71,7 +100,7 @@ export async function POST(
     // Save HTML file
     const fileName = `certificate_${certificate.id}.html`;
     const filePath = join(uploadDir, fileName);
-    await writeFile(filePath, htmlBuffer);
+    await writeFile(filePath, htmlContent);
 
     // Update certificate status
     await executeUpdate(`
