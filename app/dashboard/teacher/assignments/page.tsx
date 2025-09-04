@@ -746,6 +746,13 @@ export default function TeacherAssignmentsPage() {
                                 <Volume2 className="w-4 h-4" />
                                 <span>تسجيل صوتي:</span>
                               </div>
+                              {/* Debug info */}
+                              <div className="text-xs text-gray-500 mb-2">
+                                Audio URL type: {submission.audio_url.startsWith('data:') ? 'base64' : 'file path'}
+                                {submission.audio_url.startsWith('data:') && (
+                                  <span> (Length: {submission.audio_url.length} chars)</span>
+                                )}
+                              </div>
                               <AudioPlayer 
                                 audioUrl={submission.audio_url}
                                 filename={`submission_${submission.id}.wav`}

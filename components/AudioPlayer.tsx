@@ -15,6 +15,7 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [volume, setVolume] = useState(1)
+  const [audioError, setAudioError] = useState(false)
   
   const audioRef = useRef<HTMLAudioElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
@@ -28,12 +29,19 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
     const handlePlay = () => setIsPlaying(true)
     const handlePause = () => setIsPlaying(false)
     const handleEnded = () => setIsPlaying(false)
+    const handleError = () => {
+      console.error('Audio playback error:', audio.error)
+      setAudioError(true)
+    }
+    const handleLoadStart = () => setAudioError(false)
 
     audio.addEventListener('timeupdate', updateTime)
     audio.addEventListener('loadedmetadata', updateDuration)
     audio.addEventListener('play', handlePlay)
     audio.addEventListener('pause', handlePause)
     audio.addEventListener('ended', handleEnded)
+    audio.addEventListener('error', handleError)
+    audio.addEventListener('loadstart', handleLoadStart)
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime)
@@ -41,8 +49,10 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
       audio.removeEventListener('play', handlePlay)
       audio.removeEventListener('pause', handlePause)
       audio.removeEventListener('ended', handleEnded)
+      audio.removeEventListener('error', handleError)
+      audio.removeEventListener('loadstart', handleLoadStart)
     }
-  }, [])
+  }, [audioUrl])
 
   const togglePlayPause = () => {
     const audio = audioRef.current
@@ -51,7 +61,11 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
     if (isPlaying) {
       audio.pause()
     } else {
-      audio.play()
+      console.log('Attempting to play audio:', audioUrl)
+      audio.play().catch(error => {
+        console.error('Error playing audio:', error)
+        setAudioError(true)
+      })
     }
   }
 
@@ -105,6 +119,21 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }
+
+  // Show error state if audio failed to load
+  if (audioError) {
+    return (
+      <div className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}>
+        <div className="flex items-center gap-2 text-red-600">
+          <VolumeX className="w-4 h-4" />
+          <span className="text-sm">خطأ في تحميل الملف الصوتي</span>
+        </div>
+        <div className="text-xs text-red-500 mt-1">
+          URL: {audioUrl.substring(0, 50)}...
+        </div>
+      </div>
+    )
   }
 
   return (
