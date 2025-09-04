@@ -16,24 +16,71 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
   const [currentTime, setCurrentTime] = useState(0)
   const [volume, setVolume] = useState(1)
   const [audioError, setAudioError] = useState(false)
+  const [processedAudioUrl, setProcessedAudioUrl] = useState(audioUrl)
   
   const audioRef = useRef<HTMLAudioElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
+
+  // Process base64 data URL to blob URL for better compatibility
+  useEffect(() => {
+    if (audioUrl.startsWith('data:')) {
+      try {
+        // Convert data URL to blob
+        const response = fetch(audioUrl)
+        response.then(res => res.blob()).then(blob => {
+          const blobUrl = URL.createObjectURL(blob)
+          console.log('🔍 AudioPlayer: Created blob URL:', blobUrl)
+          setProcessedAudioUrl(blobUrl)
+        }).catch(error => {
+          console.error('🔍 AudioPlayer: Error creating blob URL:', error)
+          setProcessedAudioUrl(audioUrl) // Fallback to original
+        })
+      } catch (error) {
+        console.error('🔍 AudioPlayer: Error processing data URL:', error)
+        setProcessedAudioUrl(audioUrl) // Fallback to original
+      }
+    } else {
+      setProcessedAudioUrl(audioUrl)
+    }
+  }, [audioUrl])
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
+    console.log('🔍 AudioPlayer: Setting up audio element with URL:', processedAudioUrl.substring(0, 100) + '...')
+
     const updateTime = () => setCurrentTime(audio.currentTime)
-    const updateDuration = () => setDuration(audio.duration)
-    const handlePlay = () => setIsPlaying(true)
-    const handlePause = () => setIsPlaying(false)
-    const handleEnded = () => setIsPlaying(false)
-    const handleError = () => {
-      console.error('Audio playback error:', audio.error)
+    const updateDuration = () => {
+      console.log('🔍 AudioPlayer: Duration loaded:', audio.duration)
+      setDuration(audio.duration)
+    }
+    const handlePlay = () => {
+      console.log('🔍 AudioPlayer: Audio started playing')
+      setIsPlaying(true)
+    }
+    const handlePause = () => {
+      console.log('🔍 AudioPlayer: Audio paused')
+      setIsPlaying(false)
+    }
+    const handleEnded = () => {
+      console.log('🔍 AudioPlayer: Audio ended')
+      setIsPlaying(false)
+    }
+    const handleError = (e) => {
+      console.error('🔍 AudioPlayer: Audio error:', audio.error, e)
       setAudioError(true)
     }
-    const handleLoadStart = () => setAudioError(false)
+    const handleLoadStart = () => {
+      console.log('🔍 AudioPlayer: Load started')
+      setAudioError(false)
+    }
+    const handleCanPlay = () => {
+      console.log('🔍 AudioPlayer: Can play')
+    }
+    const handleLoadedData = () => {
+      console.log('🔍 AudioPlayer: Data loaded')
+    }
 
     audio.addEventListener('timeupdate', updateTime)
     audio.addEventListener('loadedmetadata', updateDuration)
@@ -42,6 +89,8 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
     audio.addEventListener('ended', handleEnded)
     audio.addEventListener('error', handleError)
     audio.addEventListener('loadstart', handleLoadStart)
+    audio.addEventListener('canplay', handleCanPlay)
+    audio.addEventListener('loadeddata', handleLoadedData)
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime)
@@ -51,8 +100,10 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
       audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('error', handleError)
       audio.removeEventListener('loadstart', handleLoadStart)
+      audio.removeEventListener('canplay', handleCanPlay)
+      audio.removeEventListener('loadeddata', handleLoadedData)
     }
-  }, [audioUrl])
+  }, [processedAudioUrl])
 
   const togglePlayPause = () => {
     const audio = audioRef.current
@@ -190,13 +241,31 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
           </div>
         </div>
 
-        <button
-          onClick={handleDownload}
-          className="flex items-center space-x-1 space-x-reverse text-sm text-primary hover:text-accent transition-colors"
-        >
-          <Download className="w-4 h-4" />
-          <span>تحميل</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              console.log('🔍 AudioPlayer: Original URL:', audioUrl.substring(0, 100) + '...')
+              console.log('🔍 AudioPlayer: Processed URL:', processedAudioUrl.substring(0, 100) + '...')
+              const audio = audioRef.current
+              if (audio) {
+                console.log('🔍 AudioPlayer: Audio element ready state:', audio.readyState)
+                console.log('🔍 AudioPlayer: Audio network state:', audio.networkState)
+                console.log('🔍 AudioPlayer: Audio error:', audio.error)
+                console.log('🔍 AudioPlayer: Audio src:', audio.src)
+              }
+            }}
+            className="flex items-center space-x-1 space-x-reverse text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <span>اختبار</span>
+          </button>
+          <button
+            onClick={handleDownload}
+            className="flex items-center space-x-1 space-x-reverse text-sm text-primary hover:text-accent transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            <span>تحميل</span>
+          </button>
+        </div>
       </div>
 
       {/* Progress Bar */}
@@ -222,7 +291,7 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
       {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
-        src={audioUrl}
+        src={processedAudioUrl}
         preload="metadata"
         className="hidden"
       />
