@@ -185,7 +185,6 @@ export async function GET(request: NextRequest) {
     return new NextResponse(htmlContent, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': `inline; filename="report-${type}-${range}days.html"`,
         'Cache-Control': 'no-cache'
       }
     })
