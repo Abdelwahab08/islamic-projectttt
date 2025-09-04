@@ -103,81 +103,293 @@ export async function GET(
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>شهادة إنجاز</title>
+        <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
         <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
           body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Cairo', 'Amiri', Arial, sans-serif; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #3b82f6 50%, #1d4ed8 75%, #1e40af 100%);
             margin: 0;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
           }
+          
+          body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+          }
+          
           .certificate { 
-            border: 5px solid #2c5530; 
-            padding: 40px; 
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 8px solid transparent;
+            background-clip: padding-box;
+            border-image: linear-gradient(45deg, #3b82f6, #1d4ed8, #1e40af, #1e3a8a) 1;
+            padding: 60px 50px; 
             margin: 20px; 
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            max-width: 800px;
+            border-radius: 25px;
+            box-shadow: 
+              0 25px 50px rgba(0,0,0,0.15),
+              0 0 0 1px rgba(255,255,255,0.8),
+              inset 0 1px 0 rgba(255,255,255,0.9);
+            max-width: 900px;
             width: 100%;
+            position: relative;
+            backdrop-filter: blur(10px);
           }
+          
+          .certificate::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8, #1e40af, #1e3a8a);
+            border-radius: 25px;
+            z-index: -1;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+          }
+          
+          .institute-name {
+            font-size: 18px;
+            color: #64748b;
+            font-weight: 400;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+          }
+          
           .title { 
-            font-size: 32px; 
-            color: #2c5530; 
-            margin-bottom: 30px; 
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-size: 42px; 
+            color: #1e40af; 
+            margin-bottom: 15px; 
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(30, 64, 175, 0.1);
+            position: relative;
+            display: inline-block;
           }
+          
+          .title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            border-radius: 2px;
+          }
+          
+          .subtitle {
+            font-size: 16px;
+            color: #64748b;
+            font-weight: 300;
+            margin-top: 20px;
+          }
+          
           .content { 
             font-size: 20px; 
-            margin: 20px 0; 
-            line-height: 1.6;
-            color: #333;
+            margin: 25px 0; 
+            line-height: 1.8;
+            color: #334155;
+            font-weight: 400;
           }
-          .signature { 
-            margin-top: 50px; 
-            border-top: 2px solid #2c5530;
-            padding-top: 20px;
+          
+          .student-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e40af;
+            margin: 35px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%);
+            border-radius: 15px;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            position: relative;
           }
-          .signature div {
-            margin: 10px 0;
+          
+          .student-name::before {
+            content: '👤';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+          }
+          
+          .stage-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e40af;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+            border-radius: 12px;
+            border-right: 4px solid #3b82f6;
+            display: inline-block;
+          }
+          
+          .grade {
+            font-size: 22px;
+            font-weight: 600;
+            color: #059669;
+            margin: 20px 0;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border-radius: 10px;
+            border: 2px solid rgba(5, 150, 105, 0.2);
+            display: inline-block;
+          }
+          
+          .date {
             font-size: 18px;
-            color: #555;
+            color: #64748b;
+            margin: 20px 0;
+            font-weight: 400;
           }
+          
+          .signature { 
+            margin-top: 60px; 
+            border-top: 3px solid #e2e8f0;
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+          }
+          
+          .signature-item {
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+          }
+          
+          .signature-item div {
+            margin: 8px 0;
+            font-size: 16px;
+            color: #475569;
+            font-weight: 500;
+          }
+          
+          .signature-item .role {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 400;
+            margin-bottom: 5px;
+          }
+          
+          .signature-item .name {
+            font-size: 18px;
+            color: #1e40af;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            display: inline-block;
+            min-width: 150px;
+          }
+          
           .serial {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 25px;
+            right: 25px;
+            font-size: 12px;
+            color: #94a3b8;
+            background: rgba(148, 163, 184, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+          }
+          
+          .footer {
+            margin-top: 40px;
+            text-align: center;
             font-size: 14px;
-            color: #666;
+            color: #94a3b8;
+            font-style: italic;
+          }
+          
+          .decorative-border {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 2px solid rgba(59, 130, 246, 0.1);
+            border-radius: 20px;
+            pointer-events: none;
+          }
+          
+          @media print {
+            body {
+              background: white !important;
+            }
+            .certificate {
+              box-shadow: none !important;
+              border: 2px solid #1e40af !important;
+            }
           }
         </style>
       </head>
       <body>
         <div class="certificate">
+          <div class="decorative-border"></div>
           <div class="serial">رقم الشهادة: ${certificate.serial || certificate.id}</div>
-          <div class="title">🏆 شهادة إنجاز 🏆</div>
-          <div class="content">نشهد نحن إدارة المعهد الإسلامي</div>
-          <div class="content">بأن الطالب المتميز:</div>
-          <div class="content" style="font-size: 24px; font-weight: bold; color: #2c5530; margin: 30px 0;">
-            ${certificateData.studentName}
+          
+          <div class="header">
+            <div class="institute-name">المعهد الإسلامي للتعليم</div>
+            <div class="title">شهادة إنجاز</div>
+            <div class="subtitle">Certificate of Achievement</div>
           </div>
-          <div class="content">قد أتم بنجاح مرحلة:</div>
-          <div class="content" style="font-size: 22px; font-weight: bold; color: #2c5530;">
-            ${certificateData.stageName}
-          </div>
-          <div class="content">بتقدير: ${certificateData.grade || 'ممتاز'}</div>
-          <div class="content">في تاريخ: ${certificateData.completionDate}</div>
+          
+          <div class="content">نشهد نحن إدارة المعهد الإسلامي للتعليم</div>
+          <div class="content">بأن الطالب المتميز والمجتهد:</div>
+          
+          <div class="student-name">${certificateData.studentName}</div>
+          
+          <div class="content">قد أتم بنجاح وتفوق مرحلة:</div>
+          <div class="stage-name">${certificateData.stageName}</div>
+          
+          <div class="content">بتقدير:</div>
+          <div class="grade">${certificateData.grade || 'ممتاز'}</div>
+          
+          <div class="content">في تاريخ:</div>
+          <div class="date">${certificateData.completionDate}</div>
+          
           <div class="signature">
-            <div>المدرس المشرف: ${certificateData.teacherName}</div>
-            <div>رئيس المعهد: مدير المعهد الإسلامي</div>
-            <div style="margin-top: 20px; font-size: 16px; color: #888;">
-              تم إصدار هذه الشهادة إلكترونياً
+            <div class="signature-item">
+              <div class="role">المدرس المشرف</div>
+              <div class="name">${certificateData.teacherName}</div>
             </div>
+            <div class="signature-item">
+              <div class="role">رئيس المعهد</div>
+              <div class="name">مدير المعهد الإسلامي</div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            تم إصدار هذه الشهادة إلكترونياً ومؤمنة رقمياً
           </div>
         </div>
       </body>
