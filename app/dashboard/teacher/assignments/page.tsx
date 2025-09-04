@@ -753,10 +753,15 @@ export default function TeacherAssignmentsPage() {
                                   <span> (Length: {submission.audio_url.length} chars)</span>
                                 )}
                                 {submission.audio_url.startsWith('audio_file_') && (
-                                  <span> (Large file reference)</span>
+                                  <span> (Large file reference - Vercel limitation)</span>
                                 )}
                                 <br />
                                 <span className="text-red-500">Raw audio_url: {submission.audio_url.substring(0, 100)}...</span>
+                                {submission.audio_url.startsWith('audio_file_') && (
+                                  <div className="text-orange-600 mt-1">
+                                    ⚠️ ملف كبير جداً - لا يمكن تشغيله في Vercel
+                                  </div>
+                                )}
                               </div>
                               <AudioPlayer 
                                 audioUrl={submission.audio_url}

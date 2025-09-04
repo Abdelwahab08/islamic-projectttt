@@ -67,18 +67,25 @@ export async function POST(
         
         if (audioFile && audioFile.size > 0) {
           audioBlob = audioFile;
-          // For Vercel, we'll store the audio as base64 in the database
-          // But we need to limit the size to avoid database errors
-          const arrayBuffer = await audioFile.arrayBuffer();
-          const base64Audio = Buffer.from(arrayBuffer).toString('base64');
           
-          // Check if the base64 data is too large (MySQL TEXT can handle ~65KB, but let's be safe)
-          if (base64Audio.length > 50000) { // ~50KB limit
-            console.log('🔍 DEBUG: Audio file too large, storing reference only');
+          // For Vercel serverless, we need to handle audio files differently
+          // Check file size first (Vercel has 4.5MB payload limit)
+          if (audioFile.size > 4 * 1024 * 1024) { // 4MB limit for safety
+            console.log('🔍 DEBUG: Audio file too large for Vercel, storing reference only');
             audio_url = `audio_file_${uuidv4()}_${audioFile.name}`;
           } else {
-            audio_url = `data:${audioFile.type};base64,${base64Audio}`;
-            console.log('🔍 DEBUG: Created base64 audio URL, length:', audio_url.length);
+            // For smaller files, try to store as base64
+            const arrayBuffer = await audioFile.arrayBuffer();
+            const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+            
+            // Check if the base64 data is too large for database
+            if (base64Audio.length > 100000) { // 100KB limit for database
+              console.log('🔍 DEBUG: Base64 data too large for database, storing reference only');
+              audio_url = `audio_file_${uuidv4()}_${audioFile.name}`;
+            } else {
+              audio_url = `data:${audioFile.type};base64,${base64Audio}`;
+              console.log('🔍 DEBUG: Created base64 audio URL, length:', audio_url.length);
+            }
           }
         } else {
           audio_url = (formData.get('audio_url') as string) || '';

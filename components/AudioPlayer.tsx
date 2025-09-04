@@ -22,7 +22,7 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
   const audioRef = useRef<HTMLAudioElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
 
-  // Process base64 data URL to blob URL for better compatibility
+  // Process audio URL for Vercel compatibility
   useEffect(() => {
     if (audioUrl.startsWith('data:')) {
       try {
@@ -35,31 +35,41 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
         console.log('🔍 AudioPlayer: MIME type:', mimeType)
         console.log('🔍 AudioPlayer: Base64 data length:', base64Data.length)
         
-        // Convert base64 to binary
-        const binaryString = atob(base64Data)
-        const bytes = new Uint8Array(binaryString.length)
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i)
+        // For small base64 data, create blob URL directly
+        if (base64Data.length < 100000) { // 100KB limit
+          // Convert base64 to binary
+          const binaryString = atob(base64Data)
+          const bytes = new Uint8Array(binaryString.length)
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i)
+          }
+          
+          // Create blob and URL
+          const blob = new Blob([bytes], { type: mimeType })
+          const newBlobUrl = URL.createObjectURL(blob)
+          
+          console.log('🔍 AudioPlayer: Created blob URL:', newBlobUrl)
+          console.log('🔍 AudioPlayer: Blob size:', blob.size, 'bytes')
+          
+          // Clean up previous blob URL
+          if (blobUrl) {
+            URL.revokeObjectURL(blobUrl)
+          }
+          
+          setBlobUrl(newBlobUrl)
+          setProcessedAudioUrl(newBlobUrl)
+        } else {
+          console.log('🔍 AudioPlayer: Base64 data too large, using original URL')
+          setProcessedAudioUrl(audioUrl)
         }
-        
-        // Create blob and URL
-        const blob = new Blob([bytes], { type: mimeType })
-        const newBlobUrl = URL.createObjectURL(blob)
-        
-        console.log('🔍 AudioPlayer: Created blob URL:', newBlobUrl)
-        console.log('🔍 AudioPlayer: Blob size:', blob.size, 'bytes')
-        
-        // Clean up previous blob URL
-        if (blobUrl) {
-          URL.revokeObjectURL(blobUrl)
-        }
-        
-        setBlobUrl(newBlobUrl)
-        setProcessedAudioUrl(newBlobUrl)
       } catch (error) {
         console.error('🔍 AudioPlayer: Error processing base64 data:', error)
         setProcessedAudioUrl(audioUrl) // Fallback to original
       }
+    } else if (audioUrl.startsWith('audio_file_')) {
+      // For large file references, we can't serve them in Vercel
+      console.log('🔍 AudioPlayer: Large file reference, cannot serve in Vercel')
+      setProcessedAudioUrl('')
     } else {
       console.log('🔍 AudioPlayer: Using non-data URL:', audioUrl)
       setProcessedAudioUrl(audioUrl)
