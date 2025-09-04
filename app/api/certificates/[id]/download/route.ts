@@ -189,7 +189,7 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': `attachment; filename="certificate-${certificate.serial || certificate.id}.html"`,
+        'Content-Disposition': `inline; filename="certificate-${certificate.serial || certificate.id}.html"`,
         'Cache-Control': 'no-cache'
       },
     });
