@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const userId = uuidv4()
     await executeUpdate(
       'INSERT INTO users (id, role, email, password_hash, is_approved, onboarding_status) VALUES (?, ?, ?, ?, ?, ?)',
-      [userId, role, email, passwordHash, 0, 'PENDING_REVIEW']
+      [userId, role, email, passwordHash, 0, 'PENDING']
     )
 
     // Create student record
