@@ -238,6 +238,18 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
     )
   }
 
+  // Show message if audio URL is empty or invalid
+  if (!audioUrl || audioUrl.trim() === '') {
+    return (
+      <div className={`bg-gray-50 border border-gray-200 rounded-lg p-4 ${className}`}>
+        <div className="flex items-center gap-2 text-gray-600">
+          <VolumeX className="w-4 h-4" />
+          <span className="text-sm">لا يوجد ملف صوتي</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`bg-white rounded-lg p-4 shadow-md ${className}`}>
       <div className="flex items-center justify-between mb-4">

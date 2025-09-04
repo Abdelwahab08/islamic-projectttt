@@ -752,6 +752,11 @@ export default function TeacherAssignmentsPage() {
                                 {submission.audio_url.startsWith('data:') && (
                                   <span> (Length: {submission.audio_url.length} chars)</span>
                                 )}
+                                {submission.audio_url.startsWith('audio_file_') && (
+                                  <span> (Large file reference)</span>
+                                )}
+                                <br />
+                                <span className="text-red-500">Raw audio_url: {submission.audio_url.substring(0, 100)}...</span>
                               </div>
                               <AudioPlayer 
                                 audioUrl={submission.audio_url}
