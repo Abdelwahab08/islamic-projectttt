@@ -68,10 +68,18 @@ export async function POST(
         if (audioFile && audioFile.size > 0) {
           audioBlob = audioFile;
           // For Vercel, we'll store the audio as base64 in the database
+          // But we need to limit the size to avoid database errors
           const arrayBuffer = await audioFile.arrayBuffer();
           const base64Audio = Buffer.from(arrayBuffer).toString('base64');
-          audio_url = `data:${audioFile.type};base64,${base64Audio}`;
-          console.log('🔍 DEBUG: Created base64 audio URL, length:', audio_url.length);
+          
+          // Check if the base64 data is too large (MySQL TEXT can handle ~65KB, but let's be safe)
+          if (base64Audio.length > 50000) { // ~50KB limit
+            console.log('🔍 DEBUG: Audio file too large, storing reference only');
+            audio_url = `audio_file_${uuidv4()}_${audioFile.name}`;
+          } else {
+            audio_url = `data:${audioFile.type};base64,${base64Audio}`;
+            console.log('🔍 DEBUG: Created base64 audio URL, length:', audio_url.length);
+          }
         } else {
           audio_url = (formData.get('audio_url') as string) || '';
           console.log('🔍 DEBUG: Using provided audio_url:', audio_url ? 'Yes' : 'No');
@@ -103,10 +111,14 @@ export async function POST(
 
     // Save submission to database
     const submissionId = uuidv4();
+    
+    // For large base64 audio data, we'll store it in audio_url and keep file_url as a reference
+    const fileUrlForDb = audioBlob ? `audio_${submissionId}` : fileName;
+    
     await executeUpdate(
       `INSERT INTO submissions (id, assignment_id, student_id, content, file_url, audio_url, submitted_at)
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-      [submissionId, assignmentId, assignment.student_id, notes || '', fileName, audio_url || '']
+      [submissionId, assignmentId, assignment.student_id, notes || '', fileUrlForDb, audio_url || '']
     );
 
     // Add student to assignment_targets if not already there

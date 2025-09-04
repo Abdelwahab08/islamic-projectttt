@@ -136,6 +136,21 @@ export default function AudioPlayer({ audioUrl, filename, className = '' }: Audi
     )
   }
 
+  // Show message if audio file is too large (stored as reference only)
+  if (audioUrl.startsWith('audio_file_')) {
+    return (
+      <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-4 ${className}`}>
+        <div className="flex items-center gap-2 text-yellow-600">
+          <Volume2 className="w-4 h-4" />
+          <span className="text-sm">ملف صوتي كبير - تم حفظه كمرجع</span>
+        </div>
+        <div className="text-xs text-yellow-500 mt-1">
+          الملف: {audioUrl}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`bg-white rounded-lg p-4 shadow-md ${className}`}>
       <div className="flex items-center justify-between mb-4">
