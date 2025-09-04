@@ -69,10 +69,10 @@ export async function POST(request: NextRequest) {
     const userId = uuidv4()
     await executeUpdate(
       'INSERT INTO users (id, role, email, password_hash, is_approved, onboarding_status) VALUES (?, ?, ?, ?, ?, ?)',
-      [userId, 'TEACHER', email, passwordHash, 0, 'PENDING_REVIEW']
+      [userId, 'TEACHER', email, passwordHash, 0, 'PENDING']
     )
 
-    // Create teacher record with new fields
+    // Create teacher record with all available fields
     const teacherId = uuidv4()
     await executeUpdate(
       'INSERT INTO teachers (id, user_id, full_name, phone_number, bio, cv_file, verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
