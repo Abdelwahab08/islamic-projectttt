@@ -55,6 +55,7 @@ export async function POST(
     try {
       // Try to parse as FormData first (for file uploads)
       const contentType = request.headers.get('content-type');
+      console.log('🔍 DEBUG: Content-Type:', contentType);
       
       if (contentType && contentType.includes('multipart/form-data')) {
         const formData = await request.formData();
@@ -62,20 +63,25 @@ export async function POST(
         
         // Handle audio file upload
         const audioFile = formData.get('audio') as File;
+        console.log('🔍 DEBUG: Audio file:', audioFile ? { name: audioFile.name, size: audioFile.size, type: audioFile.type } : 'No audio file');
+        
         if (audioFile && audioFile.size > 0) {
           audioBlob = audioFile;
           // For Vercel, we'll store the audio as base64 in the database
           const arrayBuffer = await audioFile.arrayBuffer();
           const base64Audio = Buffer.from(arrayBuffer).toString('base64');
           audio_url = `data:${audioFile.type};base64,${base64Audio}`;
+          console.log('🔍 DEBUG: Created base64 audio URL, length:', audio_url.length);
         } else {
           audio_url = (formData.get('audio_url') as string) || '';
+          console.log('🔍 DEBUG: Using provided audio_url:', audio_url ? 'Yes' : 'No');
         }
       } else {
         // Try to parse as JSON
         const jsonData = await request.json();
         notes = jsonData.notes || '';
         audio_url = jsonData.audio_url || '';
+        console.log('🔍 DEBUG: JSON data:', { notes: notes ? 'Yes' : 'No', audio_url: audio_url ? 'Yes' : 'No' });
       }
     } catch (error) {
       console.error('Error parsing request data:', error);
@@ -98,9 +104,9 @@ export async function POST(
     // Save submission to database
     const submissionId = uuidv4();
     await executeUpdate(
-      `INSERT INTO submissions (id, assignment_id, student_id, content, file_url, submitted_at)
-       VALUES (?, ?, ?, ?, ?, NOW())`,
-      [submissionId, assignmentId, assignment.student_id, notes || '', audio_url || fileName]
+      `INSERT INTO submissions (id, assignment_id, student_id, content, file_url, audio_url, submitted_at)
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [submissionId, assignmentId, assignment.student_id, notes || '', fileName, audio_url || '']
     );
 
     // Add student to assignment_targets if not already there
@@ -121,8 +127,16 @@ export async function POST(
 
   } catch (error) {
     console.error('Assignment submission error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      assignmentId: params.id
+    });
     return NextResponse.json(
-      { message: 'حدث خطأ في تسليم الواجب' },
+      { 
+        message: 'حدث خطأ في تسليم الواجب',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

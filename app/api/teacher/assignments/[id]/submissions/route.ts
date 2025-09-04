@@ -41,7 +41,7 @@ export async function GET(
         sub.submitted_at,
         sub.grade,
         sub.feedback,
-        sub.file_url as audio_url,
+        sub.audio_url,
         sub.page_number,
         sub.evaluation_grade,
         s.id as student_id,
