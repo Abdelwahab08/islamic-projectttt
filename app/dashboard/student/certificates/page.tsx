@@ -43,24 +43,13 @@ export default function StudentCertificatesPage() {
 
   const downloadCertificate = async (certificateId: string) => {
     try {
-      const response = await fetch(`/api/certificates/${certificateId}/download`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `certificate-${certificateId}.pdf`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-        toast.success('تم تحميل الشهادة بنجاح')
-      } else {
-        toast.error('فشل في تحميل الشهادة')
-      }
+      // Open certificate in new tab instead of downloading
+      const url = `/api/certificates/${certificateId}/download`
+      window.open(url, '_blank')
+      toast.success('تم فتح الشهادة في تبويب جديد')
     } catch (error) {
-      console.error('Error downloading certificate:', error)
-      toast.error('حدث خطأ في تحميل الشهادة')
+      console.error('Error opening certificate:', error)
+      toast.error('حدث خطأ في فتح الشهادة')
     }
   }
 
@@ -178,7 +167,7 @@ export default function StudentCertificatesPage() {
                     className="btn-primary w-full inline-flex items-center justify-center"
                   >
                     <Download className="w-4 h-4 ml-2" />
-                    تحميل الشهادة
+                    عرض الشهادة
                   </button>
                 )}
               </div>
