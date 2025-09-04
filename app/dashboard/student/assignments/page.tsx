@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import VoiceRecorder from '@/components/VoiceRecorder';
+import SmartVoiceRecorder from '@/components/SmartVoiceRecorder';
 import { Mic, BookOpen, Calendar, User, Play, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -229,9 +229,10 @@ export default function StudentAssignmentsPage() {
                 </div>
 
                 {/* Voice Recorder */}
-                <VoiceRecorder
+                <SmartVoiceRecorder
                   onRecordingComplete={handleRecordingComplete}
                   isSubmitting={isSubmitting}
+                  maxSizeKB={50}
                 />
 
                 {/* Notes */}

@@ -31,6 +31,12 @@ export default function SimpleAudioPlayer({ audioUrl, filename, className = '' }
       setIsLoading(false)
       return
     }
+    
+    // If it's a valid data URL, start loading
+    if (audioUrl.startsWith('data:')) {
+      setIsLoading(true)
+      setError(null)
+    }
   }, [audioUrl])
 
   useEffect(() => {

@@ -764,12 +764,12 @@ export default function TeacherAssignmentsPage() {
                                   </div>
                                 )}
                               </div>
-                              {/* Try Simple Audio Player first */}
-                              <SimpleAudioPlayer 
-                                audioUrl={submission.audio_url}
-                                filename={`submission_${submission.id}.wav`}
-                                className="w-full"
-                              />
+                                          {/* Smart Audio Player */}
+            <SimpleAudioPlayer 
+              audioUrl={submission.audio_url}
+              filename={`submission_${submission.id}.webm`}
+              className="w-full"
+            />
                               
                               {/* Fallback to original AudioPlayer for debugging */}
                               <details className="mt-2">
