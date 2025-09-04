@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 import { executeQuery } from '@/lib/db'
 import { getWeekDays } from '@/lib/dates'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
+    console.log('🔍 Current user:', user ? { id: user.id, role: user.role, email: user.email } : 'No user')
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -21,6 +22,14 @@ export async function GET(request: NextRequest) {
     }
 
     const teacherId = teacherRecord[0].id
+    
+    // Debug: Check teacher-student relationships
+    const teacherStudentsCount = await executeQuery('SELECT COUNT(*) as count FROM teacher_students WHERE teacher_id = ?', [teacherId])
+    console.log('🔍 Teacher ID:', teacherId, 'Assigned students count:', teacherStudentsCount[0]?.count || 0)
+    
+    // Debug: Check all teacher-student relationships
+    const allTeacherStudents = await executeQuery('SELECT teacher_id, COUNT(*) as count FROM teacher_students GROUP BY teacher_id')
+    console.log('🔍 All teacher-student relationships:', allTeacherStudents)
 
     const { searchParams } = new URL(request.url)
     const from = searchParams.get('from')
@@ -78,6 +87,8 @@ export async function GET(request: NextRequest) {
     studentsQuery += ' ORDER BY u.first_name, u.last_name'
 
     const students = await executeQuery(studentsQuery, queryParams)
+    console.log('🔍 Students query result:', students.length, 'students found')
+    console.log('🔍 Sample students:', students.slice(0, 3))
 
     // Get entries for the date range
     let entries: any[] = []
