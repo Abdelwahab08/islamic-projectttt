@@ -17,11 +17,11 @@ export async function POST(
 
     const userId = params.id
 
-                    // Update user approval status
-                const result = await executeUpdate(
-                  'UPDATE users SET is_approved = 1, onboarding_status = "ACTIVE" WHERE id = ?',
-                  [userId]
-                )
+    // Update user approval status
+    const result = await executeUpdate(
+      'UPDATE users SET is_approved = 1, onboarding_status = "ACTIVE" WHERE id = ?',
+      [userId]
+    )
 
     if (result.affectedRows === 0) {
       return NextResponse.json(

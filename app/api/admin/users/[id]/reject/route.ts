@@ -17,11 +17,11 @@ export async function POST(
 
     const userId = params.id
 
-                    // Update user rejection status
-                const result = await executeUpdate(
-                  'UPDATE users SET is_approved = 0, onboarding_status = "REJECTED" WHERE id = ?',
-                  [userId]
-                )
+    // Update user rejection status
+    const result = await executeUpdate(
+      'UPDATE users SET is_approved = 0, onboarding_status = "REJECTED" WHERE id = ?',
+      [userId]
+    )
 
     if (result.affectedRows === 0) {
       return NextResponse.json(
