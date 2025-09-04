@@ -113,7 +113,7 @@ export async function GET(
           
           body { 
             font-family: 'Cairo', 'Amiri', Arial, sans-serif; 
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #3b82f6 50%, #1d4ed8 75%, #1e40af 100%);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #94a3b8 75%, #64748b 100%);
             margin: 0;
             min-height: 100vh;
             display: flex;
@@ -131,40 +131,26 @@ export async function GET(
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(0,0,0,0.05)"/><circle cx="75" cy="75" r="1" fill="rgba(0,0,0,0.05)"/><circle cx="50" cy="10" r="0.5" fill="rgba(0,0,0,0.03)"/><circle cx="10" cy="60" r="0.5" fill="rgba(0,0,0,0.03)"/><circle cx="90" cy="40" r="0.5" fill="rgba(0,0,0,0.03)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.4;
             pointer-events: none;
           }
           
           .certificate { 
             background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            border: 8px solid transparent;
-            background-clip: padding-box;
-            border-image: linear-gradient(45deg, #3b82f6, #1d4ed8, #1e40af, #1e3a8a) 1;
+            border: 4px solid #e2e8f0;
             padding: 60px 50px; 
             margin: 20px; 
             border-radius: 25px;
             box-shadow: 
-              0 25px 50px rgba(0,0,0,0.15),
+              0 25px 50px rgba(0,0,0,0.1),
               0 0 0 1px rgba(255,255,255,0.8),
               inset 0 1px 0 rgba(255,255,255,0.9);
             max-width: 900px;
             width: 100%;
             position: relative;
-            backdrop-filter: blur(10px);
           }
           
-          .certificate::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            background: linear-gradient(45deg, #3b82f6, #1d4ed8, #1e40af, #1e3a8a);
-            border-radius: 25px;
-            z-index: -1;
-          }
           
           .header {
             text-align: center;
@@ -182,10 +168,10 @@ export async function GET(
           
           .title { 
             font-size: 42px; 
-            color: #1e40af; 
+            color: #1f2937; 
             margin-bottom: 15px; 
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(30, 64, 175, 0.1);
+            text-shadow: 2px 2px 4px rgba(31, 41, 55, 0.1);
             position: relative;
             display: inline-block;
           }
@@ -198,7 +184,7 @@ export async function GET(
             transform: translateX(-50%);
             width: 100px;
             height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            background: linear-gradient(90deg, #6b7280, #374151);
             border-radius: 2px;
           }
           
@@ -220,12 +206,12 @@ export async function GET(
           .student-name {
             font-size: 28px;
             font-weight: 700;
-            color: #1e40af;
+            color: #1f2937;
             margin: 35px 0;
             padding: 20px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(55, 65, 81, 0.1) 100%);
             border-radius: 15px;
-            border: 2px solid rgba(59, 130, 246, 0.2);
+            border: 2px solid rgba(107, 114, 128, 0.2);
             position: relative;
           }
           
@@ -241,12 +227,12 @@ export async function GET(
           .stage-name {
             font-size: 24px;
             font-weight: 600;
-            color: #1e40af;
+            color: #374151;
             margin: 25px 0;
             padding: 15px 25px;
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(55, 65, 81, 0.1) 0%, rgba(31, 41, 55, 0.1) 100%);
             border-radius: 12px;
-            border-right: 4px solid #3b82f6;
+            border-right: 4px solid #6b7280;
             display: inline-block;
           }
           
@@ -302,7 +288,7 @@ export async function GET(
           
           .signature-item .name {
             font-size: 18px;
-            color: #1e40af;
+            color: #374151;
             font-weight: 600;
             border-bottom: 2px solid #e2e8f0;
             padding-bottom: 5px;
@@ -336,7 +322,7 @@ export async function GET(
             left: 20px;
             right: 20px;
             bottom: 20px;
-            border: 2px solid rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(107, 114, 128, 0.1);
             border-radius: 20px;
             pointer-events: none;
           }
@@ -347,7 +333,7 @@ export async function GET(
             }
             .certificate {
               box-shadow: none !important;
-              border: 2px solid #1e40af !important;
+              border: 2px solid #374151 !important;
             }
           }
         </style>
@@ -358,12 +344,12 @@ export async function GET(
           <div class="serial">رقم الشهادة: ${certificate.serial || certificate.id}</div>
           
           <div class="header">
-            <div class="institute-name">المعهد الإسلامي للتعليم</div>
+            <div class="institute-name">منصة يقين</div>
             <div class="title">شهادة إنجاز</div>
             <div class="subtitle">Certificate of Achievement</div>
           </div>
           
-          <div class="content">نشهد نحن إدارة المعهد الإسلامي للتعليم</div>
+          <div class="content">نشهد نحن إدارة منصة يقين</div>
           <div class="content">بأن الطالب المتميز والمجتهد:</div>
           
           <div class="student-name">${certificateData.studentName}</div>
@@ -383,8 +369,8 @@ export async function GET(
               <div class="name">${certificateData.teacherName}</div>
             </div>
             <div class="signature-item">
-              <div class="role">رئيس المعهد</div>
-              <div class="name">مدير المعهد الإسلامي</div>
+              <div class="role">رئيس المنصة</div>
+              <div class="name">مدير منصة يقين</div>
             </div>
           </div>
           
