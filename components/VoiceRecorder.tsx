@@ -13,6 +13,7 @@ export default function VoiceRecorder({ onRecordingComplete, isSubmitting = fals
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [fileSize, setFileSize] = useState<number | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -44,6 +45,16 @@ export default function VoiceRecorder({ onRecordingComplete, isSubmitting = fals
         const blob = new Blob(chunksRef.current, { type: 'audio/wav' });
         const url = URL.createObjectURL(blob);
         setAudioURL(url);
+        
+        // Check file size and warn if too large
+        const fileSizeKB = Math.round(blob.size / 1024);
+        setFileSize(fileSizeKB);
+        console.log('🔍 VoiceRecorder: File size:', fileSizeKB, 'KB');
+        
+        if (fileSizeKB > 50) {
+          console.warn('🔍 VoiceRecorder: File is too large for Vercel playback:', fileSizeKB, 'KB');
+        }
+        
         onRecordingComplete(blob);
         
         // Stop all tracks
@@ -181,6 +192,23 @@ export default function VoiceRecorder({ onRecordingComplete, isSubmitting = fals
           <div className="text-center text-sm text-gray-600">
             ✅ تم تسجيل الصوت بنجاح
           </div>
+          
+          {fileSize && (
+            <div className={`text-center text-sm mt-2 p-2 rounded-lg ${
+              fileSize > 50 
+                ? 'bg-orange-100 text-orange-700 border border-orange-200' 
+                : 'bg-green-100 text-green-700 border border-green-200'
+            }`}>
+              📁 حجم الملف: {fileSize} KB
+              {fileSize > 50 && (
+                <div className="mt-1 text-xs">
+                  ⚠️ الملف كبير جداً - قد لا يعمل في Vercel
+                  <br />
+                  💡 نصيحة: سجل ملفاً أقصر (أقل من 30 ثانية)
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

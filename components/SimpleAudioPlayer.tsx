@@ -18,6 +18,21 @@ export default function SimpleAudioPlayer({ audioUrl, filename, className = '' }
   
   const audioRef = useRef<HTMLAudioElement>(null)
 
+  // Check if this is a large file reference that can't be played
+  useEffect(() => {
+    if (audioUrl.startsWith('audio_file_')) {
+      setError('ملف صوتي كبير جداً - لا يمكن تشغيله في Vercel')
+      setIsLoading(false)
+      return
+    }
+    
+    if (!audioUrl || audioUrl.trim() === '') {
+      setError('لا يوجد ملف صوتي')
+      setIsLoading(false)
+      return
+    }
+  }, [audioUrl])
+
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
@@ -118,11 +133,16 @@ export default function SimpleAudioPlayer({ audioUrl, filename, className = '' }
   // Show error state
   if (error) {
     return (
-      <div className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}>
-        <div className="flex items-center gap-2 text-red-600">
+      <div className={`bg-orange-50 border border-orange-200 rounded-lg p-4 ${className}`}>
+        <div className="flex items-center gap-2 text-orange-600 mb-2">
           <Volume2 className="w-4 h-4" />
-          <span className="text-sm">{error}</span>
+          <span className="text-sm font-medium">{error}</span>
         </div>
+        {error.includes('كبير جداً') && (
+          <div className="text-xs text-orange-500">
+            💡 نصيحة: لتشغيل الملفات الصوتية، يرجى تسجيل ملفات أصغر حجماً (أقل من 50KB)
+          </div>
+        )}
       </div>
     )
   }
