@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { executeQuery } from '@/lib/db'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,11 +56,11 @@ export async function POST(request: NextRequest) {
     } else {
       console.log('➕ Inserting new rating...')
       // Insert new rating
-            await executeQuery(
+      await executeQuery(
         `INSERT INTO student_ratings 
-         (student_id, date, stage_id, page_number, rating, notes, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [student_id, normalizedDate, stage_id, page_number, rating, notes]
+         (id, student_id, date, stage_id, page_number, rating, notes, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [uuidv4(), student_id, normalizedDate, stage_id, page_number, rating, notes]
       )
       
       result = await executeQuery(
