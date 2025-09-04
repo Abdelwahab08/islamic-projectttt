@@ -17,7 +17,8 @@ import {
   Activity,
   Award,
   BookOpen,
-  MessageSquare
+  MessageSquare,
+  Eye
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -82,15 +83,25 @@ export default function AdminReportsPage() {
     try {
       const response = await fetch(`/api/admin/reports/download?type=${type}&range=${dateRange}`)
       if (response.ok) {
-        const blob = await response.blob()
+        const htmlContent = await response.text()
+        
+        // Create a blob with the HTML content
+        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' })
         const url = window.URL.createObjectURL(blob)
+        
+        // Create download link
         const a = document.createElement('a')
         a.href = url
-        a.download = `report-${type}-${dateRange}days.pdf`
+        a.download = `report-${type}-${dateRange}days.html`
+        a.target = '_blank' // Open in new tab as well
+        
         document.body.appendChild(a)
         a.click()
+        
+        // Clean up
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
+        
         toast.success('تم تحميل التقرير بنجاح')
       } else {
         const errorData = await response.json()
@@ -99,6 +110,31 @@ export default function AdminReportsPage() {
     } catch (error) {
       console.error('Download error:', error)
       toast.error('فشل في تحميل التقرير')
+    }
+  }
+
+  const previewReport = async (type: string) => {
+    try {
+      const response = await fetch(`/api/admin/reports/download?type=${type}&range=${dateRange}`)
+      if (response.ok) {
+        const htmlContent = await response.text()
+        
+        // Open in new tab
+        const newWindow = window.open('', '_blank')
+        if (newWindow) {
+          newWindow.document.write(htmlContent)
+          newWindow.document.close()
+          toast.success('تم فتح التقرير في تبويب جديد')
+        } else {
+          toast.error('فشل في فتح التقرير - يرجى السماح بالنوافذ المنبثقة')
+        }
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.message || 'فشل في فتح التقرير')
+      }
+    } catch (error) {
+      console.error('Preview error:', error)
+      toast.error('فشل في فتح التقرير')
     }
   }
 
@@ -349,31 +385,84 @@ export default function AdminReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button
-                onClick={() => downloadReport('users')}
-                variant="outline"
-                className="btn-outline"
-              >
-                <Download className="w-4 h-4 ml-2" />
-                تقرير المستخدمين
-              </Button>
-              <Button
-                onClick={() => downloadReport('certificates')}
-                variant="outline"
-                className="btn-outline"
-              >
-                <Download className="w-4 h-4 ml-2" />
-                تقرير الشهادات
-              </Button>
-              <Button
-                onClick={() => downloadReport('performance')}
-                variant="outline"
-                className="btn-outline"
-              >
-                <Download className="w-4 h-4 ml-2" />
-                تقرير الأداء
-              </Button>
+            <div className="space-y-4">
+              {/* Users Report */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-medium">تقرير المستخدمين</h3>
+                  <p className="text-sm text-gray-600">إحصائيات المستخدمين والمعلمين والطلاب</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => previewReport('users')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Eye className="w-4 h-4 ml-2" />
+                    معاينة
+                  </Button>
+                  <Button
+                    onClick={() => downloadReport('users')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Download className="w-4 h-4 ml-2" />
+                    تحميل
+                  </Button>
+                </div>
+              </div>
+
+              {/* Certificates Report */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-medium">تقرير الشهادات</h3>
+                  <p className="text-sm text-gray-600">إحصائيات الشهادات المعلقة والمعتمدة</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => previewReport('certificates')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Eye className="w-4 h-4 ml-2" />
+                    معاينة
+                  </Button>
+                  <Button
+                    onClick={() => downloadReport('certificates')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Download className="w-4 h-4 ml-2" />
+                    تحميل
+                  </Button>
+                </div>
+              </div>
+
+              {/* Performance Report */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-medium">تقرير الأداء</h3>
+                  <p className="text-sm text-gray-600">إحصائيات الواجبات والمواد والاجتماعات</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => previewReport('performance')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Eye className="w-4 h-4 ml-2" />
+                    معاينة
+                  </Button>
+                  <Button
+                    onClick={() => downloadReport('performance')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Download className="w-4 h-4 ml-2" />
+                    تحميل
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
