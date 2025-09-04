@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery, executeUpdate } from '@/lib/db'
 import { createNotificationFromTemplate, notificationTemplates } from '@/lib/notifications'
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -53,10 +53,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the assignment
-    await executeUpdate(
+    console.log('🔍 Creating teacher-student assignment:', { teacherId, studentRecordId, studentEmail })
+    const result = await executeUpdate(
       'INSERT INTO teacher_students (id, teacher_id, student_id, assigned_at) VALUES (UUID(), ?, ?, CURRENT_TIMESTAMP)',
       [teacherId, studentRecordId]
     )
+    console.log('🔍 Assignment created successfully:', result)
 
     // Create notifications for both teacher and student
     try {
@@ -91,7 +93,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
