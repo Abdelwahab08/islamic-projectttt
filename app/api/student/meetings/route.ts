@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'STUDENT') {
       return NextResponse.json(
@@ -15,7 +15,7 @@ export async function GET() {
 
     // Get student record ID and current stage
     const student = await executeQuery(
-      'SELECT id, current_stage_id FROM students WHERE user_id = ?',
+      'SELECT id, current_stage_id FROM students WHERE user_id = ? LIMIT 1',
       [user.id]
     )
 
@@ -37,21 +37,24 @@ export async function GET() {
         m.description,
         m.scheduled_at,
         m.duration_minutes,
-        m.meeting_type,
+        m.provider AS meeting_type,
         m.status,
-        m.created_at,
-        u.email as teacher_email,
-        st.name_ar as stage_name,
-        g.name as group_name
+        m.join_url,
+        u.email AS teacher_email,
+        st.name_ar AS stage_name,
+        g.name AS group_name
       FROM meetings m
       LEFT JOIN teachers t ON m.teacher_id = t.id
       LEFT JOIN users u ON t.user_id = u.id
       LEFT JOIN stages st ON m.level_stage_id = st.id
       LEFT JOIN \`groups\` g ON m.group_id = g.id
-      LEFT JOIN group_members gm ON m.group_id = gm.group_id
-      WHERE (m.level_stage_id = ? OR gm.student_id = ?)
+      LEFT JOIN group_students gs ON m.group_id = gs.group_id
+      WHERE (
+        (m.group_id IS NOT NULL AND gs.student_id = ?)
+        OR (m.level_stage_id IS NOT NULL AND m.level_stage_id = ?)
+      )
       ORDER BY m.scheduled_at ASC
-    `, [currentStageId, studentId])
+    `, [studentId, currentStageId])
 
     const transformedMeetings = meetings.map((meeting: any) => ({
       id: meeting.id,
@@ -61,6 +64,7 @@ export async function GET() {
       durationMinutes: meeting.duration_minutes,
       meetingType: meeting.meeting_type,
       status: meeting.status,
+      joinUrl: meeting.join_url,
       createdAt: meeting.created_at,
       teacherEmail: meeting.teacher_email,
       stageName: meeting.stage_name,
