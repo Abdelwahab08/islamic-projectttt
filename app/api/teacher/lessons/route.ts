@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       console.log('🔍 Creating lesson with ID:', lessonId)
       console.log('🔍 Lesson data:', { teacherRecordId, day_of_week, start_time, subject, duration_minutes, room, group_id })
       
-      const result = await executeQuery(`
+      const result = await executeUpdate(`
         INSERT INTO lessons (id, teacher_id, day_of_week, start_time, subject, duration_minutes, room, group_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `, [
@@ -272,7 +272,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the lesson
-    const result = await executeQuery(`
+    const result = await executeUpdate(`
       UPDATE lessons 
       SET day_of_week = ?, start_time = ?, subject = ?, duration_minutes = ?, room = ?, group_id = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND teacher_id = ?
@@ -339,7 +339,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the lesson
-    await executeQuery('DELETE FROM lessons WHERE id = ? AND teacher_id = ?', [lessonId, teacherRecordId])
+    await executeUpdate('DELETE FROM lessons WHERE id = ? AND teacher_id = ?', [lessonId, teacherRecordId])
 
     return NextResponse.json({
       message: 'تم حذف الحصة بنجاح'

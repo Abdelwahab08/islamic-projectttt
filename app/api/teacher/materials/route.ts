@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery, executeUpdate } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -84,7 +84,32 @@ export async function POST(request: NextRequest) {
     }
     const teacherRecordId = teachers[0].id
 
-    const { title, description, kind, file_url, group_id, stage_id } = await request.json()
+    const contentType = request.headers.get('content-type') || ''
+    let title: string | null = null
+    let description: string | null = null
+    let kind: string | null = null
+    let file_url: string | null = null
+    let group_id: string | null = null
+    let stage_id: string | null = null
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData()
+      title = (formData.get('title') as string) || null
+      description = (formData.get('description') as string) || null
+      kind = (formData.get('kind') as string) || 'PDF'
+      group_id = (formData.get('group_id') as string) || null
+      stage_id = (formData.get('stage_id') as string) || null
+      // We don't store files on Vercel; generate placeholder URL
+      file_url = (formData.get('file_url') as string) || null
+    } else {
+      const body = await request.json()
+      title = body.title || null
+      description = body.description || null
+      kind = body.kind || 'PDF'
+      file_url = body.file_url || null
+      group_id = body.group_id || null
+      stage_id = body.stage_id || null
+    }
 
     if (!title || !kind) {
       return NextResponse.json({ error: 'العنوان والنوع مطلوبان' }, { status: 400 })
@@ -101,7 +126,7 @@ export async function POST(request: NextRequest) {
       teacherRecordId,
       stage_id || null,
       group_id || null,
-      file_url || `https://example.com/materials/${materialId}`, // Placeholder URL
+      file_url || `https://example.com/materials/${materialId}`,
       kind
     ])
 
