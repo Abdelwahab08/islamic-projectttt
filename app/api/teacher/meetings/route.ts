@@ -94,6 +94,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, description, date, time, duration, meeting_type, group_id, stage_id } = body
 
+    console.log('🔍 Meeting Creation - Request body:', body)
+    console.log('🔍 Meeting Creation - Group ID:', group_id)
+    console.log('🔍 Meeting Creation - Stage ID:', stage_id)
+
     if (!title || !date || !time || !duration) {
       return NextResponse.json({ error: 'جميع الحقول مطلوبة' }, { status: 400 })
     }
@@ -106,6 +110,18 @@ export async function POST(request: NextRequest) {
 
     // Save to database
     const meetingId = uuidv4()
+    console.log('🔍 Meeting Creation - Saving to database:', {
+      meetingId,
+      teacherRecordId,
+      meeting_type: meeting_type || 'AGORA',
+      title,
+      scheduledAt,
+      duration,
+      stage_id: stage_id || null,
+      group_id: group_id || null,
+      joinUrl
+    })
+    
     const result = await executeQuery(`
       INSERT INTO meetings (id, teacher_id, provider, title, scheduled_at, duration_minutes, level_stage_id, group_id, join_url, record)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
@@ -120,6 +136,8 @@ export async function POST(request: NextRequest) {
       group_id || null,
       joinUrl
     ])
+    
+    console.log('🔍 Meeting Creation - Database result:', result)
 
     return NextResponse.json({
       message: 'تم إنشاء الاجتماع بنجاح',

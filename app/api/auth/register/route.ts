@@ -44,11 +44,17 @@ export async function POST(request: NextRequest) {
       [userId, role, email, passwordHash, 0, 'PENDING']
     )
 
-    // Create student record - trigger will set default stage to RASHIDI
+    // Get the RASHIDI stage (اتقان لغتي الرشيدي)
+    const rashidiStage = await executeQuerySingle(
+      'SELECT id FROM stages WHERE code = ? LIMIT 1',
+      ['RASHIDI']
+    )
+
+    // Create student record with RASHIDI stage
     const studentId = uuidv4()
     await executeUpdate(
-      'INSERT INTO students (id, user_id) VALUES (?, ?)',
-      [studentId, userId]
+      'INSERT INTO students (id, user_id, current_stage_id, current_page) VALUES (?, ?, ?, ?)',
+      [studentId, userId, rashidiStage?.id || null, 1]
     )
 
     return NextResponse.json({
