@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -50,17 +50,19 @@ export async function GET(request: NextRequest) {
     try {
       const simpleQuery = `
         SELECT 
-          id,
-          day_of_week,
-          start_time,
-          subject,
-          duration_minutes,
-          room,
-          group_id
-        FROM lessons 
-        WHERE teacher_id = ?
+          l.id,
+          l.day_of_week,
+          l.start_time,
+          l.subject,
+          l.duration_minutes,
+          l.room,
+          l.group_id,
+          g.name as group_name
+        FROM lessons l
+        LEFT JOIN \`groups\` g ON l.group_id = g.id
+        WHERE l.teacher_id = ?
         ORDER BY 
-          CASE day_of_week
+          CASE l.day_of_week
             WHEN 'monday' THEN 1
             WHEN 'tuesday' THEN 2
             WHEN 'wednesday' THEN 3
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
             WHEN 'saturday' THEN 6
             WHEN 'sunday' THEN 7
           END,
-          start_time
+          l.start_time
       `
 
       const lessons = await executeQuery(simpleQuery, [teacherRecordId])
@@ -80,7 +82,7 @@ export async function GET(request: NextRequest) {
         day: lesson.day_of_week,
         time: lesson.start_time,
         subject: lesson.subject,
-        group_name: lesson.group_id ? `المجموعة ${lesson.group_id}` : 'غير محدد',
+        group_name: lesson.group_name || 'غير محدد',
         duration: lesson.duration_minutes,
         room: lesson.room
       }))
@@ -112,7 +114,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -223,7 +225,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -307,7 +309,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       date: meeting.scheduled_at,
       time: new Date(meeting.scheduled_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
       duration: meeting.duration_minutes,
-      meeting_type: meeting.provider,
+      meeting_type: meeting.provider || 'غير محدد',
       max_participants: 50, // Default value
       current_participants: 0, // Default value
       status: meeting.status || 'scheduled',
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'TEACHER') {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
