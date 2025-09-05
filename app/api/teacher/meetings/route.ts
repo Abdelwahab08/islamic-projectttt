@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     `
 
     const meetings = await executeQuery(meetingsQuery, [teacherId])
+    console.log('🔍 Teacher Meetings - Raw meetings data:', meetings)
 
     const transformedMeetings = meetings.map((meeting: any) => ({
       id: meeting.id,

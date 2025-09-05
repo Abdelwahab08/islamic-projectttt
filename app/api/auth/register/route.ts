@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       [userId, role, email, passwordHash, 0, 'PENDING']
     )
 
-    // Create student record
+    // Create student record - trigger will set default stage to RASHIDI
     const studentId = uuidv4()
     await executeUpdate(
       'INSERT INTO students (id, user_id) VALUES (?, ?)',
