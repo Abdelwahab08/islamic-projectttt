@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 import { getCurrentUserFromRequest } from '@/lib/auth-server'
-import { executeQuery } from '@/lib/db'
+import { executeQuery, executeUpdate } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function GET(request: NextRequest) {
