@@ -59,8 +59,9 @@ export async function GET(request: NextRequest) {
           l.group_id,
           g.name as group_name
         FROM lessons l
+        JOIN teachers t ON l.teacher_id = t.id
         LEFT JOIN \`groups\` g ON l.group_id = g.id
-        WHERE l.teacher_id = ?
+        WHERE t.user_id = ?
         ORDER BY 
           CASE l.day_of_week
             WHEN 'monday' THEN 1
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
           l.start_time
       `
 
-      const lessons = await executeQuery(simpleQuery, [teacherRecordId])
+      const lessons = await executeQuery(simpleQuery, [teacherId])
       console.log('🔍 Simple query lessons:', lessons)
 
       const transformedLessons = lessons.map((lesson: any) => ({
