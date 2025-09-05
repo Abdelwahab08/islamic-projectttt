@@ -271,8 +271,11 @@ export default function TeacherMeetingsPage() {
   }
 
   const getMeetingTypeIcon = (type: string) => {
-    switch (type) {
+    const t = (type || '').toUpperCase()
+    switch (t) {
       case 'ONLINE':
+      case 'AGORA':
+      case 'ZOOM':
         return <Video className="w-4 h-4" />
       case 'OFFLINE':
         return <MapPin className="w-4 h-4" />
@@ -282,9 +285,14 @@ export default function TeacherMeetingsPage() {
   }
 
   const getMeetingTypeText = (type: string) => {
-    switch (type) {
+    const t = (type || '').toUpperCase()
+    switch (t) {
       case 'ONLINE':
         return 'عبر الإنترنت'
+      case 'AGORA':
+        return 'AGORA'
+      case 'ZOOM':
+        return 'ZOOM'
       case 'OFFLINE':
         return 'حضوري'
       default:

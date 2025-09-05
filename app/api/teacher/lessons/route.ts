@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
 
     // Check if lessons table exists
     try {
-      const [tables] = await executeQuery('SHOW TABLES LIKE "lessons"')
-      if (tables.length === 0) {
+      const tables = await executeQuery('SHOW TABLES LIKE "lessons"')
+      if (!Array.isArray(tables) || tables.length === 0) {
         console.log('❌ Lessons table does not exist')
         return NextResponse.json({
           schedule: [],
@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
         day: lesson.day_of_week,
         time: lesson.start_time,
         subject: lesson.subject,
+        group_id: lesson.group_id,
         group_name: lesson.group_name || 'غير محدد',
         duration: lesson.duration_minutes,
         room: lesson.room
