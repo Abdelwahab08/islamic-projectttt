@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       FROM assignments a
       JOIN teachers t ON a.teacher_id = t.id
       JOIN users u ON t.user_id = u.id
-      JOIN teacher_students ts ON t.id = ts.teacher_id
+      JOIN teacher_students ts ON CONVERT(t.id USING utf8mb4) = CONVERT(ts.teacher_id USING utf8mb4)
       WHERE ts.student_id = ?
       AND DATE(a.created_at) = ?
      
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       FROM lessons l
       JOIN teachers t ON l.teacher_id = t.id
       JOIN users u ON t.user_id = u.id
-      JOIN teacher_students ts ON t.id = ts.teacher_id
+      JOIN teacher_students ts ON CONVERT(t.id USING utf8mb4) = CONVERT(ts.teacher_id USING utf8mb4)
       LEFT JOIN \`groups\` g ON l.group_id = g.id
       WHERE ts.student_id = ?
       AND DATE(CONCAT(CURDATE(), ' ', l.start_time)) = ?

@@ -12,7 +12,6 @@ const fetchMeetingsWithMembershipTable = async (
     SELECT DISTINCT
       m.id,
       m.title,
-      m.description,
       m.scheduled_at,
       m.duration_minutes,
       m.provider AS meeting_type,
@@ -80,13 +79,11 @@ export async function GET(request: NextRequest) {
     const transformedMeetings = meetings.map((meeting: any) => ({
       id: meeting.id,
       title: meeting.title,
-      description: meeting.description,
       scheduledAt: meeting.scheduled_at,
       durationMinutes: meeting.duration_minutes,
       meetingType: meeting.meeting_type,
       status: meeting.status,
       joinUrl: meeting.join_url,
-      createdAt: meeting.created_at,
       teacherEmail: meeting.teacher_email,
       stageName: meeting.stage_name,
       groupName: meeting.group_name
