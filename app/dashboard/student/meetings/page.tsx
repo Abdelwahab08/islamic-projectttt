@@ -9,13 +9,14 @@ interface Meeting {
   id: string
   title: string
   description?: string
-  scheduled_at: string
-  duration_minutes: number
-  provider: string
-  teacher_name: string
-  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED'
-  join_url?: string
-  stage_name?: string
+  scheduledAt: string
+  durationMinutes: number
+  meetingType: string
+  teacherEmail: string
+  status: string
+  joinUrl?: string
+  stageName?: string
+  groupName?: string
 }
 
 export default function StudentMeetingsPage() {
@@ -28,10 +29,10 @@ export default function StudentMeetingsPage() {
 
   const fetchMeetings = async () => {
     try {
-      const response = await fetch('/api/meetings')
+      const response = await fetch('/api/student/meetings')
       if (response.ok) {
         const data = await response.json()
-        setMeetings(data)
+        setMeetings(data.meetings || [])
       } else {
         toast.error('فشل في تحميل الاجتماعات')
       }
@@ -44,8 +45,8 @@ export default function StudentMeetingsPage() {
   }
 
   const joinMeeting = (meeting: Meeting) => {
-    if (meeting.provider === 'ZOOM' && meeting.join_url) {
-      window.open(meeting.join_url, '_blank')
+    if (meeting.joinUrl) {
+      window.open(meeting.joinUrl, '_blank')
       toast.success('تم فتح رابط الاجتماع')
     } else {
       toast('هذا اجتماع حضوري')
@@ -137,7 +138,7 @@ export default function StudentMeetingsPage() {
               <div key={meeting.id} className="card-hover">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center">
-                    {meeting.provider === 'ZOOM' ? (
+                    {meeting.meetingType === 'ZOOM' ? (
                       <Video className="w-6 h-6 text-primary ml-2" />
                     ) : (
                       <MapPin className="w-6 h-6 text-primary ml-2" />
@@ -154,30 +155,36 @@ export default function StudentMeetingsPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm">
                     <Calendar className="w-4 h-4 text-gray-500 ml-2" />
-                    <span>{formatDate(meeting.scheduled_at)}</span>
+                    <span>{formatDate(meeting.scheduledAt)}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <Clock className="w-4 h-4 text-gray-500 ml-2" />
-                    <span>{meeting.duration_minutes} دقيقة</span>
+                    <span>{meeting.durationMinutes} دقيقة</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <Users className="w-4 h-4 text-gray-500 ml-2" />
-                    <span>{meeting.teacher_name}</span>
+                    <span>{meeting.teacherEmail}</span>
                   </div>
-                  {meeting.stage_name && (
+                  {meeting.stageName && (
                     <div className="flex items-center text-sm">
                       <MapPin className="w-4 h-4 text-gray-500 ml-2" />
-                      <span>{meeting.stage_name}</span>
+                      <span>{meeting.stageName}</span>
+                    </div>
+                  )}
+                  {meeting.joinUrl && (
+                    <div className="flex items-center text-xs break-all text-blue-600 underline">
+                      <ExternalLink className="w-3 h-3 ml-1" />
+                      <a href={meeting.joinUrl} target="_blank" rel="noopener noreferrer">{meeting.joinUrl}</a>
                     </div>
                   )}
                 </div>
 
-                {meeting.status === 'SCHEDULED' && (
+                {meeting.status?.toLowerCase() === 'scheduled' && (
                   <button
                     onClick={() => joinMeeting(meeting)}
                     className="btn-primary w-full inline-flex items-center justify-center"
                   >
-                    {meeting.provider === 'ZOOM' ? (
+                    {meeting.meetingType === 'ZOOM' ? (
                       <>
                         <Video className="w-4 h-4 ml-2" />
                         انضم للاجتماع
