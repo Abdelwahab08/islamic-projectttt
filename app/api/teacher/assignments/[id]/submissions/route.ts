@@ -226,7 +226,7 @@ export async function PUT(
     }
 
     // Log the evaluation in student progress history
-    if (body.student_id && body.page_number && body.grade) {
+    if (body.student_id && body.page_number && (body.evaluation_grade || body.grade)) {
       // Get the actual teacher ID from the teachers table
       const teacherQuery = `
         SELECT t.id as teacher_id FROM teachers t
@@ -235,6 +235,26 @@ export async function PUT(
       const teacherResult = await executeQuery(teacherQuery, [teacherId])
       if (teacherResult.length > 0) {
         const actualTeacherId = teacherResult[0].teacher_id
+        // Normalize evaluation grade to valid enum
+        const allowedGrades = ['متفوق','ممتاز','جيد','إعادة','غياب','إذن'] as const
+        let evaluationForLog: string | null = null
+        if (body.evaluation_grade && allowedGrades.includes(body.evaluation_grade)) {
+          evaluationForLog = body.evaluation_grade
+        } else if (body.grade != null) {
+          const num = parseInt(body.grade)
+          if (!isNaN(num)) {
+            if (num <= 5) {
+              // Map 1-5 scale
+              evaluationForLog = num >= 5 ? 'متفوق' : num >= 4 ? 'ممتاز' : num >= 3 ? 'جيد' : 'إعادة'
+            } else {
+              // Treat as percentage 0-100
+              evaluationForLog = num >= 90 ? 'متفوق' : num >= 80 ? 'ممتاز' : num >= 60 ? 'جيد' : 'إعادة'
+            }
+          }
+        }
+        if (!evaluationForLog) {
+          evaluationForLog = 'جيد'
+        }
         const logQuery = `
           INSERT INTO student_progress_log (id, student_id, page_number, evaluation_grade, teacher_id, assignment_id, logged_at)
           VALUES (UUID(), ?, ?, ?, ?, ?, NOW())
@@ -242,7 +262,7 @@ export async function PUT(
         await executeUpdate(logQuery, [
           body.student_id,
           body.page_number,
-          body.grade,
+          evaluationForLog,
           actualTeacherId,
           assignmentId
         ])
@@ -328,6 +348,9 @@ export async function POST(
       const teacherResult = await executeQuery(teacherQuery, [teacherId])
       if (teacherResult.length > 0) {
         const actualTeacherId = teacherResult[0].teacher_id
+        // Ensure evaluation_grade is a valid enum value
+        const allowedGrades = ['متفوق','ممتاز','جيد','إعادة','غياب','إذن'] as const
+        const evaluationForLog = allowedGrades.includes(body.evaluation_grade) ? body.evaluation_grade : 'جيد'
         const logQuery = `
           INSERT INTO student_progress_log (id, student_id, page_number, evaluation_grade, teacher_id, assignment_id, logged_at)
           VALUES (UUID(), ?, ?, ?, ?, ?, NOW())
@@ -335,7 +358,7 @@ export async function POST(
         await executeUpdate(logQuery, [
           body.student_id,
           body.current_page,
-          body.evaluation_grade,
+          evaluationForLog,
           actualTeacherId,
           assignmentId
         ])
