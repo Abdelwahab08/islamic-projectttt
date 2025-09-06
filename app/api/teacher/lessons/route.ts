@@ -62,17 +62,7 @@ export async function GET(request: NextRequest) {
         JOIN teachers t ON BINARY l.teacher_id = BINARY t.id
         LEFT JOIN \`groups\` g ON l.group_id = g.id
         WHERE BINARY t.user_id = BINARY ?
-        ORDER BY 
-          CASE l.day_of_week
-            WHEN 'monday' THEN 1
-            WHEN 'tuesday' THEN 2
-            WHEN 'wednesday' THEN 3
-            WHEN 'thursday' THEN 4
-            WHEN 'friday' THEN 5
-            WHEN 'saturday' THEN 6
-            WHEN 'sunday' THEN 7
-          END,
-          l.start_time
+        ORDER BY l.day_of_week, l.start_time
       `
 
       let lessons: any[] = []
@@ -93,17 +83,7 @@ export async function GET(request: NextRequest) {
           FROM lessons l
           LEFT JOIN \`groups\` g ON l.group_id = g.id
           WHERE BINARY l.teacher_id = BINARY ?
-          ORDER BY 
-            CASE l.day_of_week
-              WHEN 'monday' THEN 1
-              WHEN 'tuesday' THEN 2
-              WHEN 'wednesday' THEN 3
-              WHEN 'thursday' THEN 4
-              WHEN 'friday' THEN 5
-              WHEN 'saturday' THEN 6
-              WHEN 'sunday' THEN 7
-            END,
-            l.start_time
+          ORDER BY l.day_of_week, l.start_time
         `
         lessons = await executeQuery(fallbackQuery, [teacherRecordId])
       }
