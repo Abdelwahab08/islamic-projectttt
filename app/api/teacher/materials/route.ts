@@ -99,13 +99,16 @@ export async function POST(request: NextRequest) {
       kind = (formData.get('kind') as string) || 'PDF'
       group_id = (formData.get('group_id') as string) || null
       stage_id = (formData.get('stage_id') as string) || null
-      // We don't store files on Vercel; generate placeholder URL
+      // We don't store files on Vercel; accept a direct file_url if provided
       file_url = (formData.get('file_url') as string) || null
     } else {
       const body = await request.json()
       title = body.title || null
       description = body.description || null
       kind = body.kind || 'PDF'
+      file_url = body.file_url || null
+      group_id = body.group_id || null
+      stage_id = body.stage_id || null
     }
 
     // Normalize kind to match DB ENUM('PDF','AUDIO','VIDEO')
@@ -115,10 +118,6 @@ export async function POST(request: NextRequest) {
       ? upperKind
       : (upperKind === 'IMAGE' ? 'PDF' : 'PDF')
     kind = normalizedKind
-      file_url = body.file_url || null
-      group_id = body.group_id || null
-      stage_id = body.stage_id || null
-    }
 
     if (!title || !kind) {
       return NextResponse.json({ error: 'العنوان والنوع مطلوبان' }, { status: 400 })
