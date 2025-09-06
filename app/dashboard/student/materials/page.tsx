@@ -42,24 +42,21 @@ export default function StudentMaterialsPage() {
 
   const downloadMaterial = async (material: Material) => {
     try {
-      const url = material.fileUrl
-      if (!url) {
-        toast.error('لا يوجد رابط للمادة')
+      const res = await fetch(`/api/materials/${material.id}/download`)
+      if (!res.ok) {
+        toast.error('فشل في تحميل المادة')
         return
       }
-      // If it's a data URL, trigger a download directly
-      if (url.startsWith('data:')) {
-        const a = document.createElement('a')
-        a.href = url
-        a.download = material.title || 'material'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        toast.success('تم تحميل المادة بنجاح')
-        return
-      }
-      // Otherwise open the file URL in a new tab (works for cross-origin links)
-      window.open(url, '_blank')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = material.title || 'material'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+      toast.success('تم تحميل المادة بنجاح')
     } catch (error) {
       console.error('Error downloading material:', error)
       toast.error('حدث خطأ في تحميل المادة')
