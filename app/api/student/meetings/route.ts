@@ -30,7 +30,9 @@ export async function GET(request: NextRequest) {
     const currentStageId = student[0].current_stage_id
 
     // Helper to query with a specific membership table
-    async function fetchMeetingsWithMembershipTable(membershipTable: 'group_students' | 'group_members') {
+    const fetchMeetingsWithMembershipTable = async (
+      membershipTable: 'group_students' | 'group_members'
+    ) => {
       const sql = `
         SELECT DISTINCT
           m.id,
