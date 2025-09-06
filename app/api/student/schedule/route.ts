@@ -45,10 +45,10 @@ export async function GET(request: NextRequest) {
         NULL as location,
         NULL as meeting_url
       FROM assignments a
-      JOIN teachers t ON a.teacher_id = t.id
-      JOIN users u ON t.user_id = u.id
+      JOIN teachers t ON CONVERT(a.teacher_id USING utf8mb4) = CONVERT(t.id USING utf8mb4)
+      JOIN users u ON CONVERT(t.user_id USING utf8mb4) = CONVERT(u.id USING utf8mb4)
       JOIN teacher_students ts ON CONVERT(t.id USING utf8mb4) = CONVERT(ts.teacher_id USING utf8mb4)
-      WHERE ts.student_id = ?
+      WHERE CONVERT(ts.student_id USING utf8mb4) = CONVERT(? USING utf8mb4)
       AND DATE(a.created_at) = ?
      
      UNION ALL
@@ -69,11 +69,11 @@ export async function GET(request: NextRequest) {
         NULL as location,
         NULL as meeting_url
       FROM lessons l
-      JOIN teachers t ON l.teacher_id = t.id
-      JOIN users u ON t.user_id = u.id
+      JOIN teachers t ON CONVERT(l.teacher_id USING utf8mb4) = CONVERT(t.id USING utf8mb4)
+      JOIN users u ON CONVERT(t.user_id USING utf8mb4) = CONVERT(u.id USING utf8mb4)
       JOIN teacher_students ts ON CONVERT(t.id USING utf8mb4) = CONVERT(ts.teacher_id USING utf8mb4)
-      LEFT JOIN \`groups\` g ON l.group_id = g.id
-      WHERE ts.student_id = ?
+      LEFT JOIN \`groups\` g ON CONVERT(l.group_id USING utf8mb4) = CONVERT(g.id USING utf8mb4)
+      WHERE CONVERT(ts.student_id USING utf8mb4) = CONVERT(? USING utf8mb4)
       AND DATE(CONCAT(CURDATE(), ' ', l.start_time)) = ?
      
      ORDER BY date, time
