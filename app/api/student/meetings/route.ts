@@ -26,9 +26,9 @@ const fetchMeetingsWithMembershipTable = async (
     LEFT JOIN users u ON t.user_id = u.id
     LEFT JOIN stages st ON m.level_stage_id = st.id
     LEFT JOIN \`groups\` g ON m.group_id = g.id
-    LEFT JOIN ${membershipTable} gm ON m.group_id = gm.group_id
+    LEFT JOIN ${membershipTable} gm ON m.group_id = gm.group_id AND gm.student_id = ?
     WHERE (
-      (m.group_id IS NOT NULL AND gm.student_id = ?)
+      (m.group_id IS NOT NULL AND gm.student_id IS NOT NULL)
       OR (m.level_stage_id IS NOT NULL AND m.level_stage_id = ?)
     )
     ORDER BY m.scheduled_at ASC

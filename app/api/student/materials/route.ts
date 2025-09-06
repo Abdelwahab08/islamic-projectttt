@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUserFromRequest(request)
     
     if (!user || user.role !== 'STUDENT') {
       return NextResponse.json(
@@ -15,7 +15,7 @@ export async function GET() {
 
     // Get student record ID and current stage
     const student = await executeQuery(
-      'SELECT id, current_stage_id FROM students WHERE user_id = ?',
+      'SELECT id, current_stage_id FROM students WHERE user_id = ? LIMIT 1',
       [user.id]
     )
 
@@ -29,23 +29,38 @@ export async function GET() {
     const studentId = student[0].id
     const currentStageId = student[0].current_stage_id
 
-    // Get materials for this student's stage
-    const materials = await executeQuery(`
-      SELECT 
-        m.id,
-        m.title,
-        m.file_url,
-        m.kind,
-        m.created_at,
-        u.email as teacher_email,
-        st.name_ar as stage_name
-      FROM materials m
-      LEFT JOIN teachers t ON m.teacher_id = t.id
-      LEFT JOIN users u ON t.user_id = u.id
-      LEFT JOIN stages st ON m.stage_id = st.id
-      WHERE m.stage_id = ?
-      ORDER BY m.created_at DESC
-    `, [currentStageId])
+    // Try with group_students membership first, then fallback to group_members
+    async function fetchMaterialsWithMembership(membershipTable: 'group_students' | 'group_members') {
+      return await executeQuery(`
+        SELECT DISTINCT
+          m.id,
+          m.title,
+          m.file_url,
+          m.kind,
+          m.created_at,
+          u.email as teacher_email,
+          st.name_ar as stage_name
+        FROM materials m
+        LEFT JOIN teachers t ON m.teacher_id = t.id
+        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN stages st ON m.stage_id = st.id
+        LEFT JOIN ${membershipTable} gm ON m.group_id = gm.group_id AND gm.student_id = ?
+        LEFT JOIN teacher_students ts ON m.teacher_id = ts.teacher_id AND ts.student_id = ?
+        WHERE (
+          m.stage_id = ? OR
+          gm.student_id IS NOT NULL OR
+          ts.student_id IS NOT NULL
+        )
+        ORDER BY m.created_at DESC
+      `, [studentId, studentId, currentStageId])
+    }
+
+    let materials = [] as any[]
+    try {
+      materials = await fetchMaterialsWithMembership('group_students')
+    } catch (err) {
+      materials = await fetchMaterialsWithMembership('group_members')
+    }
 
     const transformedMaterials = materials.map((material: any) => ({
       id: material.id,
