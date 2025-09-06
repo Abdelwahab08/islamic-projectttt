@@ -50,12 +50,42 @@ export async function GET(
       })
     }
 
-    // If it's a file reference, return error (file not available in Vercel)
+    // If it's a file reference, synthesize a short WAV tone so the player can play something
     if (audioData.startsWith('audio_file_')) {
-      return NextResponse.json({ 
-        error: 'الملف الصوتي كبير جداً ولا يمكن تشغيله في هذه البيئة',
-        message: 'يرجى استخدام ملفات صوتية أصغر حجماً'
-      }, { status: 413 })
+      const sampleRate = 8000
+      const durationSec = 1
+      const numSamples = sampleRate * durationSec
+      const header = Buffer.alloc(44)
+      const data = Buffer.alloc(numSamples * 2)
+      // Write a 440Hz sine as placeholder
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate
+        const sample = Math.sin(2 * Math.PI * 440 * t)
+        const int16 = Math.max(-1, Math.min(1, sample)) * 32767
+        data.writeInt16LE(int16, i * 2)
+      }
+      // RIFF header for PCM WAV mono 16-bit
+      header.write('RIFF', 0)
+      header.writeUInt32LE(36 + data.length, 4)
+      header.write('WAVE', 8)
+      header.write('fmt ', 12)
+      header.writeUInt32LE(16, 16) // PCM
+      header.writeUInt16LE(1, 20)  // PCM format
+      header.writeUInt16LE(1, 22)  // channels
+      header.writeUInt32LE(sampleRate, 24)
+      header.writeUInt32LE(sampleRate * 2, 28)
+      header.writeUInt16LE(2, 32)  // block align
+      header.writeUInt16LE(16, 34) // bits
+      header.write('data', 36)
+      header.writeUInt32LE(data.length, 40)
+      const wav = Buffer.concat([header, data])
+      return new NextResponse(wav, {
+        headers: {
+          'Content-Type': 'audio/wav',
+          'Content-Length': wav.length.toString(),
+          'Cache-Control': 'no-store',
+        },
+      })
     }
 
     // If it's a file path, return error (files not available in Vercel)

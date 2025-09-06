@@ -766,7 +766,7 @@ export default function TeacherAssignmentsPage() {
                               </div>
                                           {/* Smart Audio Player */}
             <SimpleAudioPlayer 
-              audioUrl={submission.audio_url}
+              audioUrl={`/api/audio/${submission.id}`}
               filename={`submission_${submission.id}.webm`}
               className="w-full"
             />
@@ -776,7 +776,7 @@ export default function TeacherAssignmentsPage() {
                                 <summary className="text-xs text-gray-500 cursor-pointer">Advanced Audio Player (Debug)</summary>
                                 <div className="mt-2">
                                   <AudioPlayer 
-                                    audioUrl={submission.audio_url}
+                                    audioUrl={`/api/audio/${submission.id}`}
                                     filename={`submission_${submission.id}.wav`}
                                     className="w-full"
                                   />
