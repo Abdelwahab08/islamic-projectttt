@@ -42,8 +42,8 @@ export default function StudentMaterialsPage() {
 
   const downloadMaterial = async (material: Material) => {
     try {
-      // Navigate to the API; it will either stream the file or redirect
-      window.location.href = `/api/materials/${material.id}/download`
+      // Prefer viewer page (inline like certificates). It has a fallback open-link inside.
+      window.open(`/api/materials/${material.id}/view`, '_blank')
     } catch (error) {
       console.error('Error downloading material:', error)
       toast.error('حدث خطأ في تحميل المادة')
