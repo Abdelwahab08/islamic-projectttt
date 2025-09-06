@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Current user ID:', teacherId)
 
     // Get teacher record
-    const teachers = await executeQuery('SELECT id FROM teachers WHERE user_id = ?', [teacherId])
+    const teachers = await executeQuery(
+      'SELECT id FROM teachers WHERE CONVERT(user_id USING utf8mb4) = CONVERT(? USING utf8mb4)',
+      [teacherId]
+    )
     console.log('🔍 Teachers found:', teachers)
     
     if (teachers.length === 0) {
@@ -46,61 +49,51 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get all lessons for this teacher - SIMPLIFIED VERSION
+    // Get all lessons for this teacher without string-based joins to avoid collation issues
     try {
-      const simpleQuery = `
+      const lessonsQuery = `
         SELECT 
-          l.id,
-          l.day_of_week,
-          l.start_time,
-          l.subject,
-          l.duration_minutes,
-          l.room,
-          l.group_id,
-          g.name as group_name
-        FROM lessons l
-        JOIN teachers t ON BINARY l.teacher_id = BINARY t.id
-        LEFT JOIN \`groups\` g ON l.group_id = g.id
-        WHERE BINARY t.user_id = BINARY ?
-        ORDER BY l.day_of_week, l.start_time
+          id,
+          day_of_week,
+          start_time,
+          subject,
+          duration_minutes,
+          room,
+          group_id
+        FROM lessons
+        WHERE CONVERT(teacher_id USING utf8mb4) = CONVERT(? USING utf8mb4)
+        ORDER BY day_of_week, start_time
       `
 
-      let lessons: any[] = []
-      try {
-        lessons = await executeQuery(simpleQuery, [teacherId])
-      } catch (err) {
-        console.error('❌ Lessons query by t.user_id failed, trying fallback by l.teacher_id', err)
-        const fallbackQuery = `
-          SELECT 
-            l.id,
-            l.day_of_week,
-            l.start_time,
-            l.subject,
-            l.duration_minutes,
-            l.room,
-            l.group_id,
-            g.name as group_name
-          FROM lessons l
-          LEFT JOIN \`groups\` g ON l.group_id = g.id
-          WHERE BINARY l.teacher_id = BINARY ?
-          ORDER BY l.day_of_week, l.start_time
-        `
-        lessons = await executeQuery(fallbackQuery, [teacherRecordId])
-      }
-      console.log('🔍 Simple query lessons:', lessons)
+      const lessons = await executeQuery(lessonsQuery, [teacherRecordId])
+      console.log('🔍 Lessons (no joins):', lessons)
 
-      const transformedLessons = lessons.map((lesson: any) => ({
+      // Fetch group names in one query (if any groups present)
+      const uniqueGroupIds = Array.from(new Set((lessons as any[])
+        .map(l => l.group_id)
+        .filter((v: string | null) => !!v))) as string[]
+
+      let groupNameMap: Record<string, string> = {}
+      if (uniqueGroupIds.length > 0) {
+        const placeholders = uniqueGroupIds.map(() => '?').join(',')
+        const groupsQuery = `SELECT id, name FROM \`groups\` WHERE id IN (${placeholders})`
+        const groups = await executeQuery(groupsQuery, uniqueGroupIds)
+        groupNameMap = (groups as any[]).reduce((acc, g) => {
+          acc[g.id] = g.name
+          return acc
+        }, {} as Record<string, string>)
+      }
+
+      const transformedLessons = (lessons as any[]).map((lesson) => ({
         id: lesson.id,
         day: lesson.day_of_week,
         time: lesson.start_time,
         subject: lesson.subject,
         group_id: lesson.group_id,
-        group_name: lesson.group_name || 'غير محدد',
+        group_name: groupNameMap[lesson.group_id] || 'غير محدد',
         duration: lesson.duration_minutes,
         room: lesson.room
       }))
-
-      console.log('🔍 Transformed lessons:', transformedLessons)
 
       return NextResponse.json({
         schedule: transformedLessons,
