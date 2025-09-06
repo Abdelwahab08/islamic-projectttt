@@ -21,6 +21,8 @@ export async function GET(
         st.name_ar as stage_name,
         s.user_id as student_user_id,
         CONCAT(COALESCE(su.first_name, ''), ' ', COALESCE(su.last_name, '')) as student_name,
+        su.first_name as student_first_name,
+        su.last_name as student_last_name,
         su.email as student_email,
         t.user_id as teacher_user_id,
         tu.email as teacher_email
@@ -83,8 +85,18 @@ export async function GET(
     });
 
     // Create certificate data object with all required fields
+    // Build a robust student display name
+    const first = (certificate.student_first_name || '').trim()
+    const last = (certificate.student_last_name || '').trim()
+    let studentDisplayName = `${first} ${last}`.trim()
+    if (!studentDisplayName) {
+      const email = (certificate.student_email || '').trim()
+      const local = email.includes('@') ? email.split('@')[0] : email
+      studentDisplayName = local.replace(/[._-]+/g, ' ').trim() || 'الطالب'
+    }
+
     const certificateData = {
-      studentName: certificate.student_name || certificate.student_email,
+      studentName: studentDisplayName,
       teacherName: certificate.teacher_email,
       stageName: certificate.stage_name,
       completionDate: completionDate,
