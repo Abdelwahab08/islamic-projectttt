@@ -106,6 +106,15 @@ export async function POST(request: NextRequest) {
       title = body.title || null
       description = body.description || null
       kind = body.kind || 'PDF'
+    }
+
+    // Normalize kind to match DB ENUM('PDF','AUDIO','VIDEO')
+    const allowedKinds = ['PDF', 'AUDIO', 'VIDEO'] as const
+    const upperKind = (kind || 'PDF').toUpperCase()
+    const normalizedKind = allowedKinds.includes(upperKind as any)
+      ? upperKind
+      : (upperKind === 'IMAGE' ? 'PDF' : 'PDF')
+    kind = normalizedKind
       file_url = body.file_url || null
       group_id = body.group_id || null
       stage_id = body.stage_id || null

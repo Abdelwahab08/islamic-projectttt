@@ -418,7 +418,7 @@ export default function TeacherMaterialsPage() {
                 >
                   <option value="PDF">ملف PDF</option>
                   <option value="VIDEO">فيديو</option>
-                  <option value="IMAGE">صورة</option>
+                  <option value="AUDIO">صوت</option>
                 </select>
               </div>
 
