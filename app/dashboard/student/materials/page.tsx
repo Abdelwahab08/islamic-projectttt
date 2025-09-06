@@ -42,21 +42,8 @@ export default function StudentMaterialsPage() {
 
   const downloadMaterial = async (material: Material) => {
     try {
-      const res = await fetch(`/api/materials/${material.id}/download`)
-      if (!res.ok) {
-        toast.error('فشل في تحميل المادة')
-        return
-      }
-      const blob = await res.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = material.title || 'material'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
-      toast.success('تم تحميل المادة بنجاح')
+      // Navigate to the API; it will either stream the file or redirect
+      window.location.href = `/api/materials/${material.id}/download`
     } catch (error) {
       console.error('Error downloading material:', error)
       toast.error('حدث خطأ في تحميل المادة')

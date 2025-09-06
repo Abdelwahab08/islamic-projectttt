@@ -61,10 +61,28 @@ export async function GET(
       return NextResponse.json({ error: 'رابط المادة غير صالح' }, { status: 400 })
     }
 
-    // Fetch the resource server-side to bypass CORS for downloads
+    // Try HEAD to determine size/content before fetching
+    try {
+      const head = await fetch(absoluteUrl, { method: 'HEAD' })
+      if (!head.ok) {
+        // If HEAD fails, redirect browser to source URL
+        return NextResponse.redirect(absoluteUrl, 302)
+      }
+      const contentLength = parseInt(head.headers.get('content-length') || '0', 10)
+      const contentTypeHead = head.headers.get('content-type') || ''
+      // If likely too large for serverless or HTML page, redirect directly
+      if (contentLength > 4_000_000 || contentTypeHead.includes('text/html')) {
+        return NextResponse.redirect(absoluteUrl, 302)
+      }
+    } catch {
+      return NextResponse.redirect(absoluteUrl, 302)
+    }
+
+    // Fetch the resource server-side to bypass CORS for manageable sizes
     const res = await fetch(absoluteUrl)
     if (!res.ok) {
-      return NextResponse.json({ error: 'تعذر تحميل الملف من المصدر' }, { status: 502 })
+      // If GET fails, redirect to source
+      return NextResponse.redirect(absoluteUrl, 302)
     }
 
     const contentType = res.headers.get('content-type') || 'application/octet-stream'
