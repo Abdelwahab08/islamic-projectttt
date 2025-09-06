@@ -42,21 +42,24 @@ export default function StudentMaterialsPage() {
 
   const downloadMaterial = async (material: Material) => {
     try {
-      const response = await fetch(`/api/materials/${material.id}/download`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
+      const url = material.fileUrl
+      if (!url) {
+        toast.error('لا يوجد رابط للمادة')
+        return
+      }
+      // If it's a data URL, trigger a download directly
+      if (url.startsWith('data:')) {
         const a = document.createElement('a')
         a.href = url
-        a.download = material.title
+        a.download = material.title || 'material'
         document.body.appendChild(a)
         a.click()
-        window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
         toast.success('تم تحميل المادة بنجاح')
-      } else {
-        toast.error('فشل في تحميل المادة')
+        return
       }
+      // Otherwise open the file URL in a new tab (works for cross-origin links)
+      window.open(url, '_blank')
     } catch (error) {
       console.error('Error downloading material:', error)
       toast.error('حدث خطأ في تحميل المادة')
