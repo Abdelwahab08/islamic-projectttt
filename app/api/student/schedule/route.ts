@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       JOIN teachers t ON l.teacher_id = t.id
       JOIN users u ON t.user_id = u.id
       JOIN teacher_students ts ON t.id = ts.teacher_id
-      LEFT JOIN `groups` g ON l.group_id = g.id
+      LEFT JOIN \`groups\` g ON l.group_id = g.id
       WHERE ts.student_id = ?
       AND DATE(CONCAT(CURDATE(), ' ', l.start_time)) = ?
      
