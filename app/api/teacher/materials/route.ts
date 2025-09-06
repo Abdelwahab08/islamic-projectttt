@@ -99,8 +99,20 @@ export async function POST(request: NextRequest) {
       kind = (formData.get('kind') as string) || 'PDF'
       group_id = (formData.get('group_id') as string) || null
       stage_id = (formData.get('stage_id') as string) || null
-      // We don't store files on Vercel; accept a direct file_url if provided
+      // Option A: accept a direct external URL if provided
       file_url = (formData.get('file_url') as string) || null
+      // Option B: accept a small file upload and store as data URL for immediate viewing
+      const uploadedFile = formData.get('file') as File | null
+      if (!file_url && uploadedFile && uploadedFile.size > 0) {
+        const maxBytes = 1000000 // ~1MB
+        if (uploadedFile.size > maxBytes) {
+          return NextResponse.json({ error: 'الملف كبير جداً. يرجى استخدام رابط خارجي أو ملف أصغر من 1MB.' }, { status: 400 })
+        }
+        const arrayBuffer = await uploadedFile.arrayBuffer()
+        const base64 = Buffer.from(arrayBuffer).toString('base64')
+        const mime = uploadedFile.type || 'application/octet-stream'
+        file_url = `data:${mime};base64,${base64}`
+      }
     } else {
       const body = await request.json()
       title = body.title || null
@@ -124,7 +136,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!file_url) {
-      return NextResponse.json({ error: 'رابط الملف مطلوب (file_url)' }, { status: 400 })
+      return NextResponse.json({ error: 'يرجى إدخال رابط الملف (URL) أو رفع ملف صغير (≤ 1MB)' }, { status: 400 })
     }
 
     // Save to database (without file upload for Vercel compatibility)
