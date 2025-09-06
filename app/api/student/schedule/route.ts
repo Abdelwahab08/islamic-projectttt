@@ -49,12 +49,16 @@ export async function GET(request: NextRequest) {
       AND DATE(a.created_at) = ?
     `, [studentId, date])
 
-    const lessonsRaw = await executeQuery(`
+    // Determine requested weekday (lowercase) from the provided date
+    const weekdayMap = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+    const requestedDay = (() => { try { return weekdayMap[new Date(date + 'T00:00:00').getDay()] } catch { return null } })()
+
+    const lessonsRaw = requestedDay ? await executeQuery(`
       SELECT 
         l.id,
         l.subject as title,
         COALESCE(g.name, '') as group_name,
-        DATE(CONCAT(CURDATE(), ' ', l.start_time)) as date,
+        ? as date,
         TIME(l.start_time) as time,
         l.duration_minutes as duration,
         u.email as teacher_name
@@ -64,8 +68,8 @@ export async function GET(request: NextRequest) {
       JOIN teacher_students ts ON CONVERT(t.id USING utf8mb4) = CONVERT(ts.teacher_id USING utf8mb4)
       LEFT JOIN \`groups\` g ON CONVERT(l.group_id USING utf8mb4) = CONVERT(g.id USING utf8mb4)
       WHERE CONVERT(ts.student_id USING utf8mb4) = CONVERT(? USING utf8mb4)
-      AND DATE(CONCAT(CURDATE(), ' ', l.start_time)) = ?
-    `, [studentId, date])
+      AND l.day_of_week = ?
+    `, [date, studentId, requestedDay]) : []
 
     const assignments = (assignmentsRaw as any[]).map((a) => ({
       type: 'ASSIGNMENT',
