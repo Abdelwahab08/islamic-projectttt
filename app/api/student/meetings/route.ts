@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 
+// Helper (top-level, not inside a block) to query with a specific membership table
+const fetchMeetingsWithMembershipTable = async (
+  membershipTable: 'group_students' | 'group_members',
+  studentId: string,
+  currentStageId: string | null
+) => {
+  const sql = `
+    SELECT DISTINCT
+      m.id,
+      m.title,
+      m.description,
+      m.scheduled_at,
+      m.duration_minutes,
+      m.provider AS meeting_type,
+      m.status,
+      m.join_url,
+      u.email AS teacher_email,
+      st.name_ar AS stage_name,
+      g.name AS group_name
+    FROM meetings m
+    LEFT JOIN teachers t ON m.teacher_id = t.id
+    LEFT JOIN users u ON t.user_id = u.id
+    LEFT JOIN stages st ON m.level_stage_id = st.id
+    LEFT JOIN \`groups\` g ON m.group_id = g.id
+    LEFT JOIN ${membershipTable} gm ON m.group_id = gm.group_id
+    WHERE (
+      (m.group_id IS NOT NULL AND gm.student_id = ?)
+      OR (m.level_stage_id IS NOT NULL AND m.level_stage_id = ?)
+    )
+    ORDER BY m.scheduled_at ASC
+  `
+  return await executeQuery(sql, [studentId, currentStageId])
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUserFromRequest(request)
@@ -29,46 +63,14 @@ export async function GET(request: NextRequest) {
     const studentId = student[0].id
     const currentStageId = student[0].current_stage_id
 
-    // Helper to query with a specific membership table
-    const fetchMeetingsWithMembershipTable = async (
-      membershipTable: 'group_students' | 'group_members'
-    ) => {
-      const sql = `
-        SELECT DISTINCT
-          m.id,
-          m.title,
-          m.description,
-          m.scheduled_at,
-          m.duration_minutes,
-          m.provider AS meeting_type,
-          m.status,
-          m.join_url,
-          u.email AS teacher_email,
-          st.name_ar AS stage_name,
-          g.name AS group_name
-        FROM meetings m
-        LEFT JOIN teachers t ON m.teacher_id = t.id
-        LEFT JOIN users u ON t.user_id = u.id
-        LEFT JOIN stages st ON m.level_stage_id = st.id
-        LEFT JOIN \`groups\` g ON m.group_id = g.id
-        LEFT JOIN ${membershipTable} gm ON m.group_id = gm.group_id
-        WHERE (
-          (m.group_id IS NOT NULL AND gm.student_id = ?)
-          OR (m.level_stage_id IS NOT NULL AND m.level_stage_id = ?)
-        )
-        ORDER BY m.scheduled_at ASC
-      `
-      return await executeQuery(sql, [studentId, currentStageId])
-    }
-
     let meetings: any[] = []
     try {
       // Try group_students first
-      meetings = await fetchMeetingsWithMembershipTable('group_students')
+      meetings = await fetchMeetingsWithMembershipTable('group_students', studentId, currentStageId)
     } catch (err: any) {
       console.error('student/meetings: group_students failed, trying group_members…', err)
       try {
-        meetings = await fetchMeetingsWithMembershipTable('group_members')
+        meetings = await fetchMeetingsWithMembershipTable('group_members', studentId, currentStageId)
       } catch (err2) {
         console.error('student/meetings: group_members failed as well', err2)
         throw err2
