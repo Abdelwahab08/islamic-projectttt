@@ -123,6 +123,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'العنوان والنوع مطلوبان' }, { status: 400 })
     }
 
+    if (!file_url) {
+      return NextResponse.json({ error: 'رابط الملف مطلوب (file_url)' }, { status: 400 })
+    }
+
     // Save to database (without file upload for Vercel compatibility)
     const materialId = uuidv4()
     await executeUpdate(`
@@ -134,7 +138,7 @@ export async function POST(request: NextRequest) {
       teacherRecordId,
       stage_id || null,
       group_id || null,
-      file_url || `https://example.com/materials/${materialId}`,
+      file_url,
       kind
     ])
 
@@ -143,7 +147,7 @@ export async function POST(request: NextRequest) {
       material: {
         id: materialId,
         title,
-        file_url: file_url || `https://example.com/materials/${materialId}`,
+        file_url: file_url,
         description: description || ''
       }
     })

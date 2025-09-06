@@ -27,6 +27,7 @@ export default function TeacherMaterialsPage() {
     description: '',
     kind: 'PDF',
     file: null as File | null,
+    file_url: '',
     group_id: '',
     stage_id: ''
   })
@@ -93,8 +94,12 @@ export default function TeacherMaterialsPage() {
   }
 
   const handleCreateMaterial = async () => {
-    if (!createForm.title || !createForm.file || !createForm.group_id) {
+    if (!createForm.title || !createForm.group_id) {
       toast.error('يرجى ملء جميع الحقول المطلوبة')
+      return
+    }
+    if (!createForm.file_url) {
+      toast.error('يرجى إدخال رابط الملف (file_url) بدلاً من رفع الملف')
       return
     }
 
@@ -103,7 +108,7 @@ export default function TeacherMaterialsPage() {
       formData.append('title', createForm.title)
       formData.append('description', createForm.description)
       formData.append('kind', createForm.kind)
-      formData.append('file', createForm.file)
+      formData.append('file_url', createForm.file_url)
       formData.append('group_id', createForm.group_id)
       formData.append('stage_id', createForm.stage_id)
 
@@ -121,6 +126,7 @@ export default function TeacherMaterialsPage() {
           description: '', 
           kind: 'PDF', 
           file: null,
+          file_url: '',
           group_id: '',
           stage_id: ''
         })
@@ -463,14 +469,15 @@ export default function TeacherMaterialsPage() {
 
               <div>
                 <label htmlFor="file" className="block text-sm font-medium text-gray-700">
-                  الملف
+                  رابط الملف (URL)
                 </label>
                 <input
-                  type="file"
-                  id="file"
-                  accept=".pdf,video/*,image/*"
-                  onChange={handleFileChange}
-                  className="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-md shadow-sm cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+                  type="url"
+                  id="file_url"
+                  value={createForm.file_url}
+                  onChange={(e) => setCreateForm({ ...createForm, file_url: e.target.value })}
+                  placeholder="https://example.com/file.pdf"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                   required
                 />
               </div>
