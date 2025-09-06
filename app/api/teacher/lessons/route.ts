@@ -75,7 +75,38 @@ export async function GET(request: NextRequest) {
           l.start_time
       `
 
-      const lessons = await executeQuery(simpleQuery, [teacherId])
+      let lessons: any[] = []
+      try {
+        lessons = await executeQuery(simpleQuery, [teacherId])
+      } catch (err) {
+        console.error('❌ Lessons query by t.user_id failed, trying fallback by l.teacher_id', err)
+        const fallbackQuery = `
+          SELECT 
+            l.id,
+            l.day_of_week,
+            l.start_time,
+            l.subject,
+            l.duration_minutes,
+            l.room,
+            l.group_id,
+            g.name as group_name
+          FROM lessons l
+          LEFT JOIN \`groups\` g ON l.group_id = g.id
+          WHERE l.teacher_id = ?
+          ORDER BY 
+            CASE l.day_of_week
+              WHEN 'monday' THEN 1
+              WHEN 'tuesday' THEN 2
+              WHEN 'wednesday' THEN 3
+              WHEN 'thursday' THEN 4
+              WHEN 'friday' THEN 5
+              WHEN 'saturday' THEN 6
+              WHEN 'sunday' THEN 7
+            END,
+            l.start_time
+        `
+        lessons = await executeQuery(fallbackQuery, [teacherRecordId])
+      }
       console.log('🔍 Simple query lessons:', lessons)
 
       const transformedLessons = lessons.map((lesson: any) => ({
@@ -101,8 +132,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         schedule: [],
         total: 0,
-        error: 'فشل في تحميل الحصص'
-      })
+        error: 'فشل في تحميل الحصص',
+        details: error instanceof Error ? error.message : String(error)
+      }, { status: 500 })
     }
 
   } catch (error) {
