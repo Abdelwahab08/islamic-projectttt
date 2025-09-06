@@ -29,18 +29,18 @@ export async function GET(request: NextRequest) {
     // Get schedule items for the student (assignments + lessons). Meetings are shown in student/meetings
     const scheduleItems = await executeQuery(`
              SELECT 
-        'ASSIGNMENT' as type,
+        CONVERT('ASSIGNMENT' USING utf8mb4) COLLATE utf8mb4_unicode_ci as type,
         a.id,
-        a.title,
-        a.description,
+        CONVERT(a.title USING utf8mb4) COLLATE utf8mb4_unicode_ci as title,
+        CONVERT(a.description USING utf8mb4) COLLATE utf8mb4_unicode_ci as description,
         DATE(a.created_at) as date,
         TIME(a.created_at) as time,
         60 as duration,
-        u.email as teacher_name,
+        CONVERT(u.email USING utf8mb4) COLLATE utf8mb4_unicode_ci as teacher_name,
         CASE 
-          WHEN a.created_at > NOW() THEN 'UPCOMING'
-          WHEN a.created_at <= NOW() AND DATE_ADD(a.created_at, INTERVAL 7 DAY) >= NOW() THEN 'ONGOING'
-          ELSE 'COMPLETED'
+          WHEN a.created_at > NOW() THEN CONVERT('UPCOMING' USING utf8mb4) COLLATE utf8mb4_unicode_ci
+          WHEN a.created_at <= NOW() AND DATE_ADD(a.created_at, INTERVAL 7 DAY) >= NOW() THEN CONVERT('ONGOING' USING utf8mb4) COLLATE utf8mb4_unicode_ci
+          ELSE CONVERT('COMPLETED' USING utf8mb4) COLLATE utf8mb4_unicode_ci
         END as status,
         NULL as location,
         NULL as meeting_url
@@ -54,17 +54,17 @@ export async function GET(request: NextRequest) {
      UNION ALL
      
       SELECT 
-        'LESSON' as type,
+        CONVERT('LESSON' USING utf8mb4) COLLATE utf8mb4_unicode_ci as type,
         l.id,
-        l.subject as title,
-        CONCAT('حصة ', COALESCE(g.name, '')) as description,
+        CONVERT(l.subject USING utf8mb4) COLLATE utf8mb4_unicode_ci as title,
+        CONVERT(CONCAT('حصة ', COALESCE(g.name, '')) USING utf8mb4) COLLATE utf8mb4_unicode_ci as description,
         DATE(CONCAT(CURDATE(), ' ', l.start_time)) as date,
         TIME(l.start_time) as time,
         l.duration_minutes as duration,
-        u.email as teacher_name,
+        CONVERT(u.email USING utf8mb4) COLLATE utf8mb4_unicode_ci as teacher_name,
         CASE 
-          WHEN TIME(l.start_time) > TIME(NOW()) THEN 'UPCOMING'
-          ELSE 'ONGOING'
+          WHEN TIME(l.start_time) > TIME(NOW()) THEN CONVERT('UPCOMING' USING utf8mb4) COLLATE utf8mb4_unicode_ci
+          ELSE CONVERT('ONGOING' USING utf8mb4) COLLATE utf8mb4_unicode_ci
         END as status,
         NULL as location,
         NULL as meeting_url
