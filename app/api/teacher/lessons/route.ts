@@ -59,9 +59,9 @@ export async function GET(request: NextRequest) {
           l.group_id,
           g.name as group_name
         FROM lessons l
-        JOIN teachers t ON l.teacher_id = t.id
+        JOIN teachers t ON BINARY l.teacher_id = BINARY t.id
         LEFT JOIN \`groups\` g ON l.group_id = g.id
-        WHERE t.user_id = ?
+        WHERE BINARY t.user_id = BINARY ?
         ORDER BY 
           CASE l.day_of_week
             WHEN 'monday' THEN 1
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
             g.name as group_name
           FROM lessons l
           LEFT JOIN \`groups\` g ON l.group_id = g.id
-          WHERE l.teacher_id = ?
+          WHERE BINARY l.teacher_id = BINARY ?
           ORDER BY 
             CASE l.day_of_week
               WHEN 'monday' THEN 1
