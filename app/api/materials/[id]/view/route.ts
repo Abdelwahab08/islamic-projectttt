@@ -35,11 +35,16 @@ export async function GET(
     const kind = (material.kind || 'PDF').toUpperCase()
     const fileUrlRaw: string = material.file_url || ''
     const origin = new URL(request.url).origin
-    const src = fileUrlRaw.startsWith('http://') || fileUrlRaw.startsWith('https://')
-      ? fileUrlRaw
-      : fileUrlRaw.startsWith('/')
-        ? origin + fileUrlRaw
-        : fileUrlRaw
+    let src = fileUrlRaw
+    if (fileUrlRaw.startsWith('http://') || fileUrlRaw.startsWith('https://')) {
+      src = fileUrlRaw
+    } else if (fileUrlRaw.startsWith('/uploads/materials/')) {
+      // Map to API that serves local uploads in serverless
+      const filename = fileUrlRaw.split('/').pop() || ''
+      src = `${origin}/api/uploads/materials/${filename}`
+    } else if (fileUrlRaw.startsWith('/')) {
+      src = origin + fileUrlRaw
+    }
 
     const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
