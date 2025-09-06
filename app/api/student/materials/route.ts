@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUserFromRequest } from '@/lib/auth-server'
 import { executeQuery } from '@/lib/db'
 
+// Helper (top-level) to fetch materials for a student via membership or assignment
+const fetchMaterialsWithMembership = async (
+  membershipTable: 'group_students' | 'group_members',
+  studentId: string,
+  currentStageId: string | null
+) => {
+  return await executeQuery(`
+    SELECT DISTINCT
+      m.id,
+      m.title,
+      m.file_url,
+      m.kind,
+      m.created_at,
+      u.email as teacher_email,
+      st.name_ar as stage_name
+    FROM materials m
+    LEFT JOIN teachers t ON m.teacher_id = t.id
+    LEFT JOIN users u ON t.user_id = u.id
+    LEFT JOIN stages st ON m.stage_id = st.id
+    LEFT JOIN ${membershipTable} gm ON m.group_id = gm.group_id AND gm.student_id = ?
+    LEFT JOIN teacher_students ts ON m.teacher_id = ts.teacher_id AND ts.student_id = ?
+    WHERE (
+      m.stage_id = ? OR
+      gm.student_id IS NOT NULL OR
+      ts.student_id IS NOT NULL
+    )
+    ORDER BY m.created_at DESC
+  `, [studentId, studentId, currentStageId])
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUserFromRequest(request)
@@ -29,37 +59,11 @@ export async function GET(request: NextRequest) {
     const studentId = student[0].id
     const currentStageId = student[0].current_stage_id
 
-    // Try with group_students membership first, then fallback to group_members
-    async function fetchMaterialsWithMembership(membershipTable: 'group_students' | 'group_members') {
-      return await executeQuery(`
-        SELECT DISTINCT
-          m.id,
-          m.title,
-          m.file_url,
-          m.kind,
-          m.created_at,
-          u.email as teacher_email,
-          st.name_ar as stage_name
-        FROM materials m
-        LEFT JOIN teachers t ON m.teacher_id = t.id
-        LEFT JOIN users u ON t.user_id = u.id
-        LEFT JOIN stages st ON m.stage_id = st.id
-        LEFT JOIN ${membershipTable} gm ON m.group_id = gm.group_id AND gm.student_id = ?
-        LEFT JOIN teacher_students ts ON m.teacher_id = ts.teacher_id AND ts.student_id = ?
-        WHERE (
-          m.stage_id = ? OR
-          gm.student_id IS NOT NULL OR
-          ts.student_id IS NOT NULL
-        )
-        ORDER BY m.created_at DESC
-      `, [studentId, studentId, currentStageId])
-    }
-
     let materials = [] as any[]
     try {
-      materials = await fetchMaterialsWithMembership('group_students')
+      materials = await fetchMaterialsWithMembership('group_students', studentId, currentStageId)
     } catch (err) {
-      materials = await fetchMaterialsWithMembership('group_members')
+      materials = await fetchMaterialsWithMembership('group_members', studentId, currentStageId)
     }
 
     const transformedMaterials = materials.map((material: any) => ({
